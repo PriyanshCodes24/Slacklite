@@ -10,6 +10,8 @@ const io = new Server(server, {
   },
 });
 
+app.set('io',io)
+
 require("./sockets/socketHandler")(io);
 
 const PORT = process.env.PORT || 5000;
