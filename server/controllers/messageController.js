@@ -11,6 +11,13 @@ exports.sendMessage = async (req, res) => {
     chatType,
   });
 
+  const io = req.app.get("io");
+
+  io.to(receiver.toString()).emit("receive_message", {
+    sender: req.user._id,
+    content,
+  });
+
   res.status(201).json(message);
 };
 

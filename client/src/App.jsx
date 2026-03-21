@@ -7,11 +7,13 @@ function App() {
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([]);
 
-  const userId = "69badb546202be4af13a628a";
-  const receiverId = "69badb326202be4af13a6286";
+  // const userId = "69badb546202be4af13a628a";
+  // const receiverId = "69badb326202be4af13a6286";
+  const userId = localStorage.getItem("senderId");
+  const receiverId = localStorage.getItem("receiverId");
 
   useEffect(() => {
-    const socket = io("http://localhost:6000");
+    const socket = io("http://localhost:5000");
 
     socket.emit("join", userId);
 

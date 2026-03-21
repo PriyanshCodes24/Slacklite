@@ -4,6 +4,7 @@ module.exports = (io) => {
 
     socket.on("join", (userId) => {
       socket.join(userId);
+      console.log("User joined room:", userId);
     });
 
     socket.on("send_message", (data) => {
