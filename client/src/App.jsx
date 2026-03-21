@@ -26,8 +26,23 @@ function App() {
       if (data.sender !== userId) setChat((prev) => [...prev, data]);
     });
 
+    const fetchMessages = async () => {
+      try {
+        const res = await api.get(`/messages?chatId=${receiverId}&type=dm`);
+        const normalized = res.data.map((msg) => ({
+          ...msg,
+          sender: typeof msg.sender === "object" ? msg.sender._id : msg.sender,
+        }));
+
+        setChat(normalized);
+      } catch (error) {
+        console.error("Failed to load messages:", error);
+      }
+    };
+    fetchMessages();
+
     return () => socket.disconnect();
-  }, [userId]);
+  }, [userId, receiverId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
