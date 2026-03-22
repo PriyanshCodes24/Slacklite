@@ -7,6 +7,9 @@ function App() {
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([]);
   const bottomRef = useRef(null);
+  const socketRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
+  const [isTyping, setIsTyping] = useState(false);
 
   // const userId = "69badb546202be4af13a628a";
   // const receiverId = "69badb326202be4af13a6286";
@@ -17,13 +20,24 @@ function App() {
   }
 
   useEffect(() => {
-    const socket = io("http://localhost:5000");
+    socketRef.current = io("http://localhost:5000");
 
-    socket.emit("join", userId);
+    socketRef.current.emit("join", userId);
     console.log("Joining room: ", userId);
 
-    socket.on("receive_message", (data) => {
+    socketRef.current.on("receive_message", (data) => {
       if (data.sender !== userId) setChat((prev) => [...prev, data]);
+    });
+
+    socketRef.current.on("typing", ({ senderId }) => {
+      if (userId !== senderId) {
+        setIsTyping(true);
+      }
+    });
+    socketRef.current.on("stop_typing", ({ senderId }) => {
+      if (userId !== senderId) {
+        setIsTyping(false);
+      }
     });
 
     const fetchMessages = async () => {
@@ -41,7 +55,12 @@ function App() {
     };
     fetchMessages();
 
-    return () => socket.disconnect();
+    return () => {
+      socketRef.current.off("receive_message");
+      socketRef.current.off("typing");
+      socketRef.current.off("stop_typing");
+      socketRef.current.disconnect();
+    };
   }, [userId, receiverId]);
 
   useEffect(() => {
@@ -68,6 +87,23 @@ function App() {
     if (e.key === "Enter") sendMessage();
   };
 
+  const handleInputChange = (e) => {
+    setMessage(e.target.value);
+
+    socketRef.current.emit("typing", {
+      senderId: userId,
+      receiverId,
+    });
+
+    clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
+      socketRef.current.emit("stop_typing", {
+        senderId: userId,
+        receiverId,
+      });
+    }, 1200);
+  };
+
   return (
     <div className="h-screen flex flex-col p-4 bg-gray-900">
       <h2 className="text-white text-xl font-semibold mb-4">Chat</h2>
@@ -91,10 +127,11 @@ function App() {
         ))}
         <div ref={bottomRef} />
       </div>
+      {isTyping && <div className="text-sm text-gray-400 mb-2">Typing...</div>}
       <div className="flex mt-3 gap-2">
         <input
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={handleInputChange}
           placeholder="Type message..."
           className="flex-1 bg-gray-800 border border-gray-600 p-2 rounded text-white placeholder-gray-400"
           onKeyDown={handleEnter}
