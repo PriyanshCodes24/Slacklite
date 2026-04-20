@@ -6,13 +6,12 @@ import api from "./services/api";
 function App() {
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([]);
+  const [onlineUsers, setOnlineUsers] = useState([]);
   const bottomRef = useRef(null);
   const socketRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const [isTyping, setIsTyping] = useState(false);
 
-  // const userId = "69badb546202be4af13a628a";
-  // const receiverId = "69badb326202be4af13a6286";
   const userId = localStorage.getItem("senderId");
   const receiverId = localStorage.getItem("receiverId");
   if (!userId || !receiverId) {
@@ -38,6 +37,9 @@ function App() {
       if (userId !== senderId) {
         setIsTyping(false);
       }
+    });
+    socketRef.current.on("online_users", (users) => {
+      setOnlineUsers(users);
     });
 
     const fetchMessages = async () => {
@@ -106,7 +108,18 @@ function App() {
 
   return (
     <div className="h-screen flex flex-col p-4 bg-gray-900">
-      <h2 className="text-white text-xl font-semibold mb-4">Chat</h2>
+      <div className="flex justify-between items-center mb-2">
+        <h2 className="text-white text-xl font-semibold">Chat</h2>
+
+        <span className="flex items-center gap-2 text-sm">
+          <span
+            className={`w-2 h-2 rounded-full ${
+              onlineUsers.includes(receiverId) ? "bg-green-400" : "bg-gray-500"
+            }`}
+          />
+          {onlineUsers.includes(receiverId) ? "Online" : "Offline"}
+        </span>
+      </div>
 
       <div className="flex-1 overflow-auto bg-gray-800 p-3 rounded shadow">
         {chat.map((msg, i) => (
