@@ -1,3 +1,5 @@
+const Message = require("../models/Message");
+
 const onlineUsers = new Map();
 
 module.exports = (io) => {
@@ -14,17 +16,54 @@ module.exports = (io) => {
       console.log("User joined room:", userId);
     });
 
-    socket.on("send_message", (data) => {
-      const { receiverId } = data;
+    // socket.on("send_message", (data) => {
+    //   const { receiverId } = data;
 
-      io.to(receiverId).emit("receive_message", data);
-    });
+    //   io.to(receiverId).emit("receive_message", data);
+    // });
 
     socket.on("typing", ({ senderId, receiverId }) => {
       io.to(receiverId).emit("typing", { senderId });
     });
     socket.on("stop_typing", ({ senderId, receiverId }) => {
       io.to(receiverId).emit("stop_typing", { senderId });
+    });
+
+    socket.on("message_delivered", async ({ messageId }) => {
+      try {
+        const message = await Message.findByIdAndUpdate(
+          messageId,
+          {
+            status: "delivered",
+          },
+          { new: true },
+        );
+
+        io.to(message.sender.toString()).emit("message_status_update", {
+          messageId,
+          status: "delivered",
+        });
+      } catch (err) {
+        console.error("Error updating delivered: ", err);
+      }
+    });
+    socket.on("message_seen", async ({ senderId, receiverId }) => {
+      try {
+        await Message.updateMany(
+          {
+            sender: senderId,
+            receiver: receiverId,
+            status: { $ne: "seen" },
+          },
+          { status: "seen" },
+        );
+
+        io.to(senderId).emit("message_seen", {
+          senderId,
+        });
+      } catch (err) {
+        console.error("Error updating seen: ", err);
+      }
     });
 
     socket.on("disconnect", () => {

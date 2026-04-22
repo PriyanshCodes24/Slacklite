@@ -9,6 +9,7 @@ exports.sendMessage = async (req, res) => {
     receiver,
     channelId,
     chatType,
+    status: "sent",
   });
 
   const io = req.app.get("io");

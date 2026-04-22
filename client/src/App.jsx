@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import { io } from "socket.io-client";
 import api from "./services/api";
+import { MessageStatus } from "./components/MessageStatus";
 
 function App() {
   const [message, setMessage] = useState("");
@@ -24,8 +25,26 @@ function App() {
     socketRef.current.emit("join", userId);
     console.log("Joining room: ", userId);
 
+    socketRef.current.emit("message_seen", {
+      senderId: receiverId,
+      receiverId: userId,
+    });
+
+    socketRef.current.on("message_seen", ({ senderId }) => {
+      setChat((prev) =>
+        prev.map((msg) =>
+          msg.sender === userId ? { ...msg, status: "seen" } : msg,
+        ),
+      );
+    });
     socketRef.current.on("receive_message", (data) => {
-      if (data.sender !== userId) setChat((prev) => [...prev, data]);
+      if (data.sender !== userId) {
+        setChat((prev) => [...prev, data]);
+
+        socketRef.current.emit("message_delivered", {
+          messageId: data._id,
+        });
+      }
     });
 
     socketRef.current.on("typing", ({ senderId }) => {
@@ -125,17 +144,25 @@ function App() {
         {chat.map((msg, i) => (
           <div
             key={i}
-            className={`mb-2 ${msg.sender === userId ? "text-right" : "text-left"}`}
+            className={`mb-2  ${msg.sender === userId ? "text-right" : "text-left"}`}
           >
-            <span
-              className={`inline-block px-3 py-1 rounded ${
-                msg.sender === userId
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-600 text-white"
-              }`}
-            >
-              {msg.content}
-            </span>
+            <div className="inline-block max-w-xs">
+              <div
+                className={`px-3 py-1 rounded ${
+                  msg.sender === userId
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-600 text-white"
+                }`}
+              >
+                {msg.content}
+              </div>
+
+              {msg.sender === userId && (
+                <div className="flex justify-end mt-1 pr-1 opacity-80">
+                  <MessageStatus status={msg.status} />
+                </div>
+              )}
+            </div>
           </div>
         ))}
         <div ref={bottomRef} />
