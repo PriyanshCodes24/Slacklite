@@ -9,7 +9,10 @@ module.exports = (io) => {
     socket.on("join", (userId) => {
       socket.join(userId);
 
-      onlineUsers.set(userId, socket.id);
+      if (!onlineUsers.has(userId)) {
+        onlineUsers.set(userId, new Set());
+      }
+      onlineUsers.get(userId).add(socket.id);
 
       io.emit("online_users", Array.from(onlineUsers.keys()));
 
@@ -36,8 +39,10 @@ module.exports = (io) => {
           {
             status: "delivered",
           },
-          { new: true },
+          { returnDocument: "after" },
         );
+
+        if (!message) return;
 
         io.to(message.sender.toString()).emit("message_status_update", {
           messageId,
@@ -49,6 +54,7 @@ module.exports = (io) => {
     });
     socket.on("message_seen", async ({ senderId, receiverId }) => {
       try {
+        if (!senderId || !receiverId) return;
         await Message.updateMany(
           {
             sender: senderId,

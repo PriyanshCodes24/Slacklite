@@ -105,7 +105,13 @@ function App() {
     }
   };
   const handleEnter = (e) => {
-    if (e.key === "Enter") sendMessage();
+    if (e.key === "Enter") {
+      if (e.shiftKey) {
+      } else {
+        e.preventDefault();
+        sendMessage();
+      }
+    }
   };
 
   const handleInputChange = (e) => {
@@ -148,7 +154,7 @@ function App() {
           >
             <div className="inline-block max-w-xs">
               <div
-                className={`px-3 py-1 rounded ${
+                className={`px-3 py-1 rounded wrap-break-word whitespace-pre-wrap leading-relaxed ${
                   msg.sender === userId
                     ? "bg-blue-600 text-white"
                     : "bg-gray-600 text-white"
@@ -169,9 +175,10 @@ function App() {
       </div>
       {isTyping && <div className="text-sm text-gray-400 mb-2">Typing...</div>}
       <div className="flex mt-3 gap-2">
-        <input
+        <textarea
           value={message}
           onChange={handleInputChange}
+          rows={1}
           placeholder="Type message..."
           className="flex-1 bg-gray-800 border border-gray-600 p-2 rounded text-white placeholder-gray-400"
           onKeyDown={handleEnter}

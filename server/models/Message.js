@@ -18,10 +18,16 @@ const messageSchema = new mongoose.Schema(
     receiver: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      required: function () {
+        return this.chatType === "dm";
+      },
     },
-    channel: {
+    channelId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Channel",
+      required: function () {
+        return this.chatType === "channel";
+      },
     },
     isArchived: {
       type: Boolean,
@@ -35,5 +41,7 @@ const messageSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+messageSchema.index({ sender: 1, receiver: 1, createdAt: 1 });
 
 module.exports = mongoose.model("Message", messageSchema);

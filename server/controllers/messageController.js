@@ -14,36 +14,38 @@ exports.sendMessage = async (req, res) => {
 
   const io = req.app.get("io");
 
-  io.to(receiver.toString()).emit("receive_message", {
-    sender: req.user._id,
-    content,
-  });
+  io.to(receiver.toString()).emit("receive_message", message);
 
   res.status(201).json(message);
 };
 
 exports.getMessages = async (req, res) => {
-  const { chatId, type } = req.query;
+  try {
+    const { chatId, type } = req.query;
 
-  let query = {};
+    let query = {};
 
-  if (type === "dm") {
-    query = {
-      chatType: "dm",
-      $or: [
-        { sender: req.user._id, receiver: chatId },
-        { sender: chatId, receiver: req.user._id },
-      ],
-    };
-  } else {
-    query = {
-      chatType: "channel",
-      channelId: chatId,
-    };
+    if (type === "dm") {
+      query = {
+        chatType: "dm",
+        $or: [
+          { sender: req.user._id, receiver: chatId },
+          { sender: chatId, receiver: req.user._id },
+        ],
+      };
+    } else {
+      query = {
+        chatType: "channel",
+        channelId: chatId,
+      };
+    }
+
+    const messages = await Message.find(query)
+      .populate("sender", "name email")
+      .sort({ createdAt: 1 });
+    res.status(200).json(messages);
+  } catch (e) {
+    console.error("Send message error", e);
+    res.status(500).json({ msg: "Failed to send message" });
   }
-
-  const messages = await Message.find(query)
-    .populate("sender", "name email")
-    .sort({ createdAt: 1 });
-  res.status(200).json(messages);
 };
