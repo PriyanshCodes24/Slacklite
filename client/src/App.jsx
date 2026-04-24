@@ -30,13 +30,6 @@ function App() {
       receiverId: userId,
     });
 
-    socketRef.current.on("message_seen", ({ senderId }) => {
-      setChat((prev) =>
-        prev.map((msg) =>
-          msg.sender === userId ? { ...msg, status: "seen" } : msg,
-        ),
-      );
-    });
     socketRef.current.on("receive_message", (data) => {
       if (data.sender !== userId) {
         setChat((prev) => [...prev, data]);
@@ -60,6 +53,11 @@ function App() {
     socketRef.current.on("online_users", (users) => {
       setOnlineUsers(users);
     });
+    socketRef.current.on("message_status_update", ({ messageId, status }) => {
+      setChat((prev) =>
+        prev.map((msg) => (messageId === msg._id ? { ...msg, status } : msg)),
+      );
+    });
 
     const fetchMessages = async () => {
       try {
@@ -75,11 +73,20 @@ function App() {
       }
     };
     fetchMessages();
+    socketRef.current.on("message_seen", ({ senderId }) => {
+      setChat((prev) =>
+        prev.map((msg) =>
+          msg.sender === userId ? { ...msg, status: "seen" } : msg,
+        ),
+      );
+    });
 
     return () => {
       socketRef.current.off("receive_message");
       socketRef.current.off("typing");
       socketRef.current.off("stop_typing");
+      socketRef.current.off("message_seen");
+      socketRef.current.off("message_status_update");
       socketRef.current.disconnect();
     };
   }, [userId, receiverId]);
@@ -92,13 +99,13 @@ function App() {
     if (!message.trim()) return;
 
     try {
-      await api.post("/messages", {
+      const res = await api.post("/messages", {
         content: message,
         receiver: receiverId,
         chatType: "dm",
       });
 
-      setChat((prev) => [...prev, { sender: userId, content: message }]);
+      setChat((prev) => [...prev, res.data]);
       setMessage("");
     } catch (error) {
       console.log("Message failed: ", error);
@@ -152,7 +159,7 @@ function App() {
             key={i}
             className={`mb-2  ${msg.sender === userId ? "text-right" : "text-left"}`}
           >
-            <div className="inline-block max-w-xs">
+            <div className="inline-block max-w-[70%]">
               <div
                 className={`px-3 py-1 rounded wrap-break-word whitespace-pre-wrap leading-relaxed ${
                   msg.sender === userId

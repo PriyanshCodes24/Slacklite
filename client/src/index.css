@@ -4,3 +4,19 @@
 body{
     color: white;
 }
+
+::-webkit-scrollbar{
+    width: 6px;
+}
+::-webkit-scrollbar-thumb{
+    background: #4b5563;
+    border-radius: 9999px;
+    transition: background 0.2s ease;
+    background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+::-webkit-scrollbar-track{
+    background: transparent;
+}
