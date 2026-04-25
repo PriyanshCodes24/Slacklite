@@ -11,11 +11,15 @@ const Login = () => {
     e.preventDefault();
     try {
       const res = await api.post("/auth/login", { email, password });
-      console.log(res);
 
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("userId", res.data._id);
-      localStorage.setItem("receiverId", "69badb326202be4af13a6286");
+      localStorage.setItem(
+        "receiverId",
+        res.data._id === "69badb326202be4af13a6286"
+          ? "69badb546202be4af13a628a"
+          : "69badb326202be4af13a6286",
+      );
 
       navigate("/chat");
     } catch (e) {

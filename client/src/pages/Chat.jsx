@@ -25,10 +25,6 @@ const Chat = () => {
     socketRef.current.emit("join", userId);
     console.log("Joining room: ", userId);
 
-    socketRef.current.on("message_seen", (data) => {
-      console.log("🔥 SEEN EVENT RECEIVED:", data);
-    });
-
     socketRef.current.emit("message_seen", {
       senderId: receiverId,
       receiverId: userId,
