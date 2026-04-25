@@ -25,6 +25,10 @@ function App() {
     socketRef.current.emit("join", userId);
     console.log("Joining room: ", userId);
 
+    socketRef.current.on("message_seen", (data) => {
+      console.log("🔥 SEEN EVENT RECEIVED:", data);
+    });
+
     socketRef.current.emit("message_seen", {
       senderId: receiverId,
       receiverId: userId,
@@ -36,6 +40,11 @@ function App() {
 
         socketRef.current.emit("message_delivered", {
           messageId: data._id,
+        });
+
+        socketRef.current.emit("message_seen", {
+          senderId: receiverId,
+          receiverId: userId,
         });
       }
     });
@@ -76,7 +85,9 @@ function App() {
     socketRef.current.on("message_seen", ({ senderId }) => {
       setChat((prev) =>
         prev.map((msg) =>
-          msg.sender === userId ? { ...msg, status: "seen" } : msg,
+          msg.sender === userId && msg.receiver === receiverId
+            ? { ...msg, status: "seen" }
+            : msg,
         ),
       );
     });
