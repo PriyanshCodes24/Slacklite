@@ -12,7 +12,8 @@ const Chat = () => {
   const typingTimeoutRef = useRef(null);
   const [isTyping, setIsTyping] = useState(false);
 
-  const userId = localStorage.getItem("senderId");
+  const userId =
+    localStorage.getItem("userId") || localStorage.getItem("senderId");
   const receiverId = localStorage.getItem("receiverId");
   if (!userId || !receiverId) {
     return <div className="text-white">Set userId in localStorage</div>;
