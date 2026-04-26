@@ -2,7 +2,7 @@ import React from "react";
 import Users from "../pages/Users";
 import { Outlet } from "react-router-dom";
 
-const chatOutlet = () => {
+const ChatLayout = () => {
   return (
     <div className="h-screen flex bg-gray-900">
       <div className="border-gray-700 border-r overflow-auto w-1/4">
@@ -15,4 +15,4 @@ const chatOutlet = () => {
   );
 };
 
-export default chatOutlet;
+export default ChatLayout;

@@ -22,18 +22,15 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/users" element={<Users />} />
-        <Route
-          path="/chat"
-          element={token ? <Chat /> : <Navigate to="/login" />}
-        />
         <Route
           path="/"
           element={token ? <ChatLayout /> : <Navigate to="/login" />}
         >
           <Route
             index
-            element={<div className="text-white p-4">Select a user</div>}
+            element={
+              <div className="text-white p-4 text-center">Select a user</div>
+            }
           />
           <Route path="chat/:id" element={<Chat />} />
         </Route>

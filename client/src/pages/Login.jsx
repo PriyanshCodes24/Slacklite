@@ -14,12 +14,6 @@ const Login = () => {
 
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("userId", res.data._id);
-      // localStorage.setItem(
-      //   "receiverId",
-      //   res.data._id === "69badb326202be4af13a6286"
-      //     ? "69badb546202be4af13a628a"
-      //     : "69badb326202be4af13a6286",
-      // );
 
       navigate("/chat");
     } catch (e) {
