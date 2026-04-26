@@ -11,6 +11,8 @@ import {
 import Chat from "./pages/Chat";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Users from "./pages/Users";
+import ChatLayout from "./layouts/ChatLayout";
 
 function App() {
   const token = localStorage.getItem("token");
@@ -18,13 +20,23 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={token ? <Chat /> : <Navigate to="/login" />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/users" element={<Users />} />
         <Route
           path="/chat"
           element={token ? <Chat /> : <Navigate to="/login" />}
         />
+        <Route
+          path="/"
+          element={token ? <ChatLayout /> : <Navigate to="/login" />}
+        >
+          <Route
+            index
+            element={<div className="text-white p-4">Select a user</div>}
+          />
+          <Route path="chat/:id" element={<Chat />} />
+        </Route>
       </Routes>
     </Router>
   );

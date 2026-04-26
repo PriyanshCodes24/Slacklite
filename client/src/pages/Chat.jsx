@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import api from "../services/api";
 import { MessageStatus } from "../components/MessageStatus";
+import { useParams } from "react-router-dom";
 
 const Chat = () => {
   const [message, setMessage] = useState("");
@@ -14,7 +15,7 @@ const Chat = () => {
 
   const userId =
     localStorage.getItem("userId") || localStorage.getItem("senderId");
-  const receiverId = localStorage.getItem("receiverId");
+  const { id: receiverId } = useParams();
   if (!userId || !receiverId) {
     return <div className="text-white">Set userId in localStorage</div>;
   }
