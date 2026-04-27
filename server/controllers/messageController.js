@@ -49,3 +49,43 @@ exports.getMessages = async (req, res) => {
     res.status(500).json({ msg: "Failed to send message" });
   }
 };
+
+exports.getConversations = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const messages = await Message.find({
+      chatType: "dm",
+      $or: [{ sender: userId }, { receiver: userId }],
+    })
+      .sort({ createdAt: -1 })
+      .populate("sender", "name")
+      .populate("receiver", "name");
+
+    const conversations = {};
+
+    messages.forEach((msg) => {
+      const otherUser =
+        msg.sender._id.toString() === userId.toString()
+          ? msg.receiver
+          : msg.sender;
+
+      const key = otherUser._id.toString();
+
+      if (!conversations[key]) {
+        conversations[key] = {
+          user: otherUser,
+          lastMessage: msg.content,
+          createdAt: msg.createdAt,
+        };
+      }
+
+      // console.log("Normal: ", conversations);
+      // console.log("Objected: ", Object.values(conversations));
+    });
+    res.json(Object.values(conversations));
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Failed to fetch conversations" });
+  }
+};

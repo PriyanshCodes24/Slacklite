@@ -5,9 +5,11 @@ const { protect } = require("../middlewares/authMiddleware");
 const {
   sendMessage,
   getMessages,
+  getConversations,
 } = require("../controllers/messageController");
 
 router.post("/", protect, sendMessage);
 router.get("/", protect, getMessages);
+router.get("/conversations", protect, getConversations);
 
 module.exports = router;

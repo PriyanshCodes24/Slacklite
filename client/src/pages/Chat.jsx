@@ -167,7 +167,7 @@ const Chat = () => {
             key={i}
             className={`mb-2  ${msg.sender === userId ? "text-right" : "text-left"}`}
           >
-            <div className="inline-block max-w-[70%]">
+            <div className="inline-block max-w-sm">
               <div
                 className={`px-3 py-1 rounded wrap-break-word whitespace-pre-wrap leading-relaxed ${
                   msg.sender === userId

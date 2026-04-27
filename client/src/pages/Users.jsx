@@ -10,8 +10,8 @@ const Users = () => {
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const res = await api.get("/users/all");
-        setUsers(res.data.users);
+        const res = await api.get("/messages/conversations");
+        setUsers(res.data);
       } catch (error) {
         console.error("Failed to fetch Users: " + error);
       }
@@ -26,17 +26,17 @@ const Users = () => {
     <div className="bg-gray-900 h-full p-3 space-y-2">
       <h2 className="text-lg font-semibold mb-2">Chats</h2>
 
-      {users.map((user) => {
-        const isActive = user._id === activeUserId;
+      {users.map((item) => {
+        const isActive = item.user._id === activeUserId;
         return (
           <div
-            key={user._id}
+            key={item.user._id}
             className={`p-3 rounded cursor-pointer transition ${isActive ? "bg-gray-700" : "bg-gray-800 hover:bg-gray-700"}`}
-            onClick={() => handleSelectUser(user._id)}
+            onClick={() => handleSelectUser(item.user._id)}
           >
-            <p className="font-medium">{user.name}</p>
-            <p className="text-gray-400 text-sm overflow-hidden">
-              {user.email}
+            <p className="font-medium">{item.user.name}</p>
+            <p className="text-gray-400 text-sm truncate ">
+              {item.lastMessage || "No messages yet"}
             </p>
           </div>
         );
