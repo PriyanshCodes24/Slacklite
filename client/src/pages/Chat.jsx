@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import api from "../services/api";
 import { MessageStatus } from "../components/MessageStatus";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const Chat = () => {
   const [message, setMessage] = useState("");
@@ -12,15 +12,19 @@ const Chat = () => {
   const socketRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const [isTyping, setIsTyping] = useState(false);
+  const navigate = useNavigate();
+  const inputRef = useRef(null);
 
   const userId =
     localStorage.getItem("userId") || localStorage.getItem("senderId");
   const { id: receiverId } = useParams();
+
   if (!userId || !receiverId) {
     return <div className="text-white">Set userId in localStorage</div>;
   }
 
   useEffect(() => {
+    inputRef.current?.focus();
     socketRef.current = io("http://localhost:5000");
 
     socketRef.current.emit("join", userId);
@@ -103,6 +107,34 @@ const Chat = () => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chat]);
 
+  useEffect(() => {
+    const handleShortcut = (e) => {
+      const isTyping =
+        document.activeElement.tagName === "INPUT" ||
+        document.activeElement.tagName === "TEXTAREA" ||
+        document.activeElement?.isContentEditable;
+
+      if (e.key === "Escape") {
+        if (isTyping) {
+          inputRef.current?.blur();
+          return;
+        }
+        navigate("/");
+      }
+
+      if (e.key === "/") {
+        if (isTyping) {
+          return;
+        }
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    };
+
+    window.addEventListener("keydown", handleShortcut);
+    return () => window.removeEventListener("keydown", handleShortcut);
+  }, [navigate]);
+
   const sendMessage = async () => {
     if (!message.trim()) return;
 
@@ -124,13 +156,11 @@ const Chat = () => {
       console.log("Message failed: ", error);
     }
   };
+
   const handleEnter = (e) => {
-    if (e.key === "Enter") {
-      if (e.shiftKey) {
-      } else {
-        e.preventDefault();
-        sendMessage();
-      }
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
     }
   };
 
@@ -196,6 +226,7 @@ const Chat = () => {
       {isTyping && <div className="text-sm text-gray-400 mb-2">Typing...</div>}
       <div className="flex mt-3 gap-2">
         <textarea
+          ref={inputRef}
           value={message}
           onChange={handleInputChange}
           rows={1}
