@@ -15,7 +15,7 @@ const Login = () => {
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("userId", res.data._id);
 
-      navigate("/chat");
+      navigate("/");
     } catch (e) {
       console.error(e);
       alert("Login failed");

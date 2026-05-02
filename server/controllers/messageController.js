@@ -79,9 +79,6 @@ exports.getConversations = async (req, res) => {
           createdAt: msg.createdAt,
         };
       }
-
-      // console.log("Normal: ", conversations);
-      // console.log("Objected: ", Object.values(conversations));
     });
     res.json(Object.values(conversations));
   } catch (error) {

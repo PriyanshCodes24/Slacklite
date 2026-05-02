@@ -115,6 +115,11 @@ const Chat = () => {
 
       setChat((prev) => [...prev, res.data]);
       setMessage("");
+      socketRef.current.emit("send_message", {
+        sender: userId,
+        receiver: receiverId,
+        content: message,
+      });
     } catch (error) {
       console.log("Message failed: ", error);
     }
