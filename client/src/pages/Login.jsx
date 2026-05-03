@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
 
-const Login = () => {
+const Login = ({ setToken }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
@@ -12,8 +12,10 @@ const Login = () => {
     try {
       const res = await api.post("/auth/login", { email, password });
 
-      localStorage.setItem("token", res.data.token);
       localStorage.setItem("userId", res.data._id);
+      localStorage.setItem("userName", res.data.name);
+      localStorage.setItem("token", res.data.token);
+      setToken(res.data.token);
 
       navigate("/");
     } catch (e) {
@@ -46,7 +48,7 @@ const Login = () => {
         />
         <button
           type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 p-2 rounded outline-none "
+          className="w-full bg-blue-600 hover:bg-blue-700 p-2 rounded outline-none cursor-pointer"
         >
           Login
         </button>

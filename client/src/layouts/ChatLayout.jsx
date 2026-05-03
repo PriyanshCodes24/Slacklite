@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import Users from "../pages/Users";
-import { data, Outlet, useParams } from "react-router-dom";
+import { data, Outlet, useNavigate, useParams } from "react-router-dom";
 import api from "../services/api";
 import { io } from "socket.io-client";
 
@@ -9,6 +9,7 @@ const ChatLayout = () => {
   const userId = localStorage.getItem("userId");
   const { id: activeChatId } = useParams();
   const activeChatRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchConversations = async () => {
@@ -100,7 +101,24 @@ const ChatLayout = () => {
 
   return (
     <div className="h-screen flex bg-gray-900">
-      <div className="border-gray-700 border-r overflow-auto w-1/4">
+      <div className="border-gray-700 border-r overflow-auto w-75 ">
+        <div className="p-3 border-b border-gray-700 flex items-center justify-between">
+          <div>
+            <p className="text-sm text-white font-semibold">
+              {localStorage.getItem("userName") || "User"}
+            </p>
+            <p className="text-xs text-gray-400">Online</p>
+          </div>
+          <button
+            onClick={() => {
+              localStorage.clear();
+              navigate("/login");
+            }}
+            className="text-xs text-red-400 hover:text-red-300 cursor-pointer"
+          >
+            Logout
+          </button>
+        </div>
         <Users conversations={conversations} />
       </div>
       <div className="flex-1">
