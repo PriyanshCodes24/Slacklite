@@ -10,7 +10,30 @@ const ChatLayout = () => {
   const { id: activeChatId } = useParams();
   const activeChatRef = useRef(null);
   const navigate = useNavigate();
+  const [search, setSearch] = useState("");
+  const [results, setResults] = useState([]);
 
+  // search
+  useEffect(() => {
+    const delay = setTimeout(async () => {
+      if (!search.trim) {
+        setResults([]);
+        return;
+      }
+
+      try {
+        const res = await api.get(`/users/search?q=${search}`);
+        setResults(res.data);
+        console.log(res.data);
+      } catch (error) {
+        console.error(error);
+      }
+    }, 300);
+
+    return () => clearTimeout(delay);
+  }, [search]);
+
+  // socket
   useEffect(() => {
     const fetchConversations = async () => {
       const res = await api.get("/messages/conversations");
@@ -31,10 +54,12 @@ const ChatLayout = () => {
     return () => socket.disconnect();
   }, []);
 
+  // chatRef
   useEffect(() => {
     activeChatRef.current = activeChatId;
   }, [activeChatId]);
 
+  // setConversations
   useEffect(() => {
     if (!activeChatId) return;
 
@@ -118,6 +143,34 @@ const ChatLayout = () => {
           >
             Logout
           </button>
+        </div>
+        <div className="p-2 border-b border-gray-700">
+          <input
+            type="text"
+            placeholder="Search Users"
+            className="w-full bg-gray-800 p-2 rounded outline-none"
+            onChange={(e) => setSearch(e.target.value)}
+            value={search}
+          />
+
+          {results.length > 0 && (
+            <div className="mt-2 bg-gray-800 rounded shadow">
+              {results.map((user) => (
+                <div
+                  key={user._id}
+                  onClick={() => {
+                    setSearch("");
+                    setResults([]);
+                    navigate(`/chat/${user._id}`);
+                  }}
+                  className="cursor-pointer p-2 hover:bg-gray-700"
+                >
+                  <p className="text-sm">{user.name}</p>
+                  <p className="text-xs text-gray-400">{user.email}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         <Users conversations={conversations} />
       </div>

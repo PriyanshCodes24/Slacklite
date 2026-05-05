@@ -29,4 +29,3 @@ exports.searchUsers = async (req, res) => {
   }
 };
 
-// module.exports = { getAllUsers };
