@@ -70,6 +70,30 @@ const ChatLayout = () => {
     );
   }, [activeChatId]);
 
+  const handleUserClick = (user) => {
+    const newUserId = user._id;
+
+    setConversations((prev) => {
+      const exists = prev.find((c) => c.user._id === newUserId);
+
+      if (exists) return prev;
+
+      return [
+        {
+          user: user,
+          lastMessage: "",
+          unread: 0,
+          createdAt: new Date(),
+        },
+        ...prev,
+      ];
+    });
+
+    setSearch("");
+    setResults([]);
+    navigate(`/chat/${newUserId}`);
+  };
+
   const updateSidebar = (msg) => {
     if (!msg?.sender || !msg?.receiver) {
       console.warn("Invalid message skipped:", msg);
@@ -158,11 +182,7 @@ const ChatLayout = () => {
               {results.map((user) => (
                 <div
                   key={user._id}
-                  onClick={() => {
-                    setSearch("");
-                    setResults([]);
-                    navigate(`/chat/${user._id}`);
-                  }}
+                  onClick={() => handleUserClick(user)}
                   className="cursor-pointer p-2 hover:bg-gray-700"
                 >
                   <p className="text-sm">{user.name}</p>
