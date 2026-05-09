@@ -2,7 +2,7 @@ import React, { useEffect, useId, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../services/api";
 
-const Users = ({ conversations }) => {
+const Users = ({ conversations, onlineUsers }) => {
   const navigate = useNavigate();
   const { id: activeUserId } = useParams();
 
@@ -23,8 +23,17 @@ const Users = ({ conversations }) => {
           >
             <div className="flex justify-between items-center">
               <div>
-                <p className="font-medium">{item.user?.name || "Unknown"}</p>
-                <p className="text-gray-400 text-sm truncate ">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      onlineUsers.includes(item.user._id)
+                        ? "bg-green-400"
+                        : "bg-gray-500"
+                    }`}
+                  />
+                  <p className="font-medium">{item.user?.name || "Unknown"}</p>
+                </div>
+                <p className="text-gray-400 text-sm truncate ml-4">
                   {item.lastMessage || "No messages yet"}
                 </p>
               </div>

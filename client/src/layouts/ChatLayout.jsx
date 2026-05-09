@@ -12,6 +12,7 @@ const ChatLayout = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [results, setResults] = useState([]);
+  const [onlineUsers, setOnlineUsers] = useState([]);
 
   // search
   useEffect(() => {
@@ -50,6 +51,9 @@ const ChatLayout = () => {
     socket.emit("join", userId);
     socket.on("receive_message", (data) => {
       updateSidebar(data);
+    });
+    socket.on("online_users", (users) => {
+      setOnlineUsers(users);
     });
     return () => socket.disconnect();
   }, []);
@@ -192,7 +196,7 @@ const ChatLayout = () => {
             </div>
           )}
         </div>
-        <Users conversations={conversations} />
+        <Users conversations={conversations} onlineUsers={onlineUsers} />
       </div>
       <div className="flex-1">
         <Outlet />
