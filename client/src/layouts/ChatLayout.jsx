@@ -132,6 +132,7 @@ const ChatLayout = () => {
                   otherUserId !== activeChatRef.current
                     ? (c.unread || 0) + 1
                     : 0,
+                createdAt: msg.createdAt,
               }
             : c,
         );
@@ -141,6 +142,7 @@ const ChatLayout = () => {
             user: { _id: otherUserId, name: "New User" },
             lastMessage: msg.content,
             unread: otherUserId !== activeChatRef.current ? 1 : 0,
+            createdAt: msg.createdAt,
           },
           ...prev,
         ];

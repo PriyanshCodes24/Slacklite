@@ -3,6 +3,7 @@ import { io } from "socket.io-client";
 import api from "../services/api";
 import { MessageStatus } from "../components/MessageStatus";
 import { useNavigate, useParams } from "react-router-dom";
+import { formateTime } from "../utils/formateTime";
 
 const Chat = () => {
   const [message, setMessage] = useState("");
@@ -184,7 +185,7 @@ const Chat = () => {
   return (
     <div className="h-screen flex flex-col p-4 bg-gray-900">
       <div className="flex justify-between items-center mb-2">
-        <h2 className="text-white text-xl font-semibold">Chat</h2>
+        <h2 className="text-white text-xl font-semibold">{"Chat"}</h2>
 
         <span className="flex items-center gap-2 text-sm">
           <span
@@ -210,14 +211,18 @@ const Chat = () => {
                     : "bg-gray-600 text-white"
                 }`}
               >
-                {msg.content}
-              </div>
-
-              {msg.sender === userId && (
-                <div className="flex justify-end mt-1 pr-1 opacity-80">
-                  <MessageStatus status={msg.status} />
+                <p>{msg.content}</p>
+                <div className="flex justify-end items-center mt-1 gap-1">
+                  <span className="text-[10px] text-gray-400">
+                    {formateTime(msg.createdAt)}
+                  </span>
+                  {msg.sender === userId && (
+                    <div className="flex justify-end opacity-80">
+                      <MessageStatus status={msg.status} />
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
         ))}
