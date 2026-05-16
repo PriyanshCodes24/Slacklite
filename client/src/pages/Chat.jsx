@@ -198,34 +198,56 @@ const Chat = () => {
       </div>
 
       <div className="flex-1 overflow-auto bg-gray-800 p-3 rounded shadow">
-        {chat.map((msg, i) => (
-          <div
-            key={i}
-            className={`mb-2  ${msg.sender === userId ? "text-right" : "text-left"}`}
-          >
-            <div className="inline-block max-w-sm">
-              <div
-                className={`px-3 py-1 rounded wrap-break-word whitespace-pre-wrap leading-relaxed ${
-                  msg.sender === userId
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-600 text-white"
-                }`}
-              >
-                <p>{msg.content}</p>
-                <div className="flex justify-end items-center mt-1 gap-1">
-                  <span className="text-[10px] text-gray-400">
-                    {formateTime(msg.createdAt)}
-                  </span>
-                  {msg.sender === userId && (
-                    <div className="flex justify-end opacity-80">
-                      <MessageStatus status={msg.status} />
-                    </div>
-                  )}
+        {chat.map((msg, i) => {
+          const prevMsg = chat[i - 1];
+
+          const isSameSender =
+            prevMsg &&
+            (prevMsg.sender === msg.sender ||
+              prevMsg.sender?._id === msg.sender?._id);
+
+          const senderId =
+            typeof msg.sender === "object" ? msg.sender._id : msg.sender;
+
+          return (
+            <div
+              key={i}
+              className={`${isSameSender ? "mb-1" : "mb-4"}  ${msg.sender === userId ? "text-right" : "text-left"}`}
+            >
+              <div className="inline-block max-w-sm">
+                <div
+                  className={`px-3 py-1 wrap-break-word whitespace-pre-wrap leading-relaxed
+                    ${
+                      senderId === userId
+                        ? isSameSender
+                          ? "rounded-2xl rounded-tr-md"
+                          : "rounded-2xl"
+                        : isSameSender
+                          ? "rounded-2xl rounded-tl-md"
+                          : "rounded-2xl"
+                    }
+                    ${
+                      senderId === userId
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-600 text-white"
+                    }`}
+                >
+                  <p className="text-left">{msg.content}</p>
+                  <div className="flex justify-end items-center mt-1 gap-1">
+                    <span className="text-[10px] text-gray-400">
+                      {formateTime(msg.createdAt)}
+                    </span>
+                    {msg.sender === userId && (
+                      <div className="flex justify-end opacity-80">
+                        <MessageStatus status={msg.status} />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         <div ref={bottomRef} />
       </div>
       {isTyping && <div className="text-sm text-gray-400 mb-2">Typing...</div>}
