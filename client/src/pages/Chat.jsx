@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import api from "../services/api";
 import { MessageStatus } from "../components/MessageStatus";
 import { useNavigate, useParams } from "react-router-dom";
-import { formateTime } from "../utils/formateTime";
+import { formatTime } from "../utils/formatTime";
+import { formatDateLable } from "../utils/formatDateLable";
 
 const Chat = () => {
   const [message, setMessage] = useState("");
@@ -201,6 +202,14 @@ const Chat = () => {
         {chat.map((msg, i) => {
           const prevMsg = chat[i - 1];
 
+          const currentDate = new Date(msg.createdAt).toDateString();
+
+          const prevDate = prevMsg
+            ? new Date(prevMsg.createdAt).toDateString()
+            : null;
+
+          const showDateSeparator = currentDate !== prevDate;
+
           const isSameSender =
             prevMsg &&
             (prevMsg.sender === msg.sender ||
@@ -210,13 +219,23 @@ const Chat = () => {
             typeof msg.sender === "object" ? msg.sender._id : msg.sender;
 
           return (
-            <div
-              key={i}
-              className={`${isSameSender ? "mb-1" : "mb-4"}  ${msg.sender === userId ? "text-right" : "text-left"}`}
-            >
-              <div className="inline-block max-w-sm">
-                <div
-                  className={`px-3 py-1 wrap-break-word whitespace-pre-wrap leading-relaxed
+            <React.Fragment key={i}>
+              {showDateSeparator && (
+                <div className="flex justify-center my-4">
+                  <span className="bg-gray-700 text-gray-300 text-xs px-3 py-1 rounded-full">
+                    {formatDateLable(msg.createdAt)}
+                  </span>
+                </div>
+              )}
+              <div
+                key={i}
+                className={`${isSameSender ? "mb-1" : "mb-4"}  ${msg.sender === userId ? "text-right" : "text-left"}`}
+              >
+                <div className="inline-block max-w-sm">
+                  {/* message bubble */}
+
+                  <div
+                    className={`px-3 py-1 wrap-break-word whitespace-pre-wrap leading-relaxed
                     ${
                       senderId === userId
                         ? isSameSender
@@ -231,21 +250,24 @@ const Chat = () => {
                         ? "bg-blue-600 text-white"
                         : "bg-gray-600 text-white"
                     }`}
-                >
-                  <p className="text-left">{msg.content}</p>
-                  <div className="flex justify-end items-center mt-1 gap-1">
-                    <span className="text-[10px] text-gray-400">
-                      {formateTime(msg.createdAt)}
-                    </span>
-                    {msg.sender === userId && (
-                      <div className="flex justify-end opacity-80">
-                        <MessageStatus status={msg.status} />
-                      </div>
-                    )}
+                  >
+                    <p className="text-left">{msg.content}</p>
+
+                    <div className="flex justify-end items-center mt-1 gap-1">
+                      <span className="text-[10px] text-gray-400">
+                        {formatTime(msg.createdAt)}
+                      </span>
+
+                      {senderId === userId && (
+                        <div className="flex justify-end opacity-80">
+                          <MessageStatus status={msg.status} />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </React.Fragment>
           );
         })}
         <div ref={bottomRef} />

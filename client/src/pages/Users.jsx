@@ -1,7 +1,7 @@
 import React, { useEffect, useId, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../services/api";
-import { formateTime } from "../utils/formateTime";
+import { formatTime } from "../utils/formatTime";
 
 const Users = ({ conversations, onlineUsers }) => {
   const navigate = useNavigate();
@@ -41,7 +41,7 @@ const Users = ({ conversations, onlineUsers }) => {
 
                   {item.createdAt && (
                     <span className="text-xs text-gray-500 shrink-0 ml-2">
-                      {formateTime(item.createdAt)}
+                      {formatTime(item.createdAt)}
                     </span>
                   )}
                 </div>
