@@ -183,6 +183,19 @@ const Chat = () => {
     }, 1200);
   };
 
+  const adjustTextAreaHeigh = () => {
+    const textarea = inputRef.current;
+
+    if (!textarea) return;
+
+    textarea.style.height = "0px";
+    textarea.style.height = Math.min(textarea.scrollHeight, 160) + "px";
+  };
+
+  useEffect(() => {
+    adjustTextAreaHeigh();
+  }, [message]);
+
   return (
     <div className="h-screen flex flex-col p-4 bg-gray-900">
       <div className="flex justify-between items-center mb-2">
@@ -227,13 +240,12 @@ const Chat = () => {
                   </span>
                 </div>
               )}
+              {/* message bubble */}
               <div
                 key={i}
                 className={`${isSameSender ? "mb-1" : "mb-4"}  ${msg.sender === userId ? "text-right" : "text-left"}`}
               >
                 <div className="inline-block max-w-sm">
-                  {/* message bubble */}
-
                   <div
                     className={`px-3 py-1 wrap-break-word whitespace-pre-wrap leading-relaxed
                     ${
@@ -278,9 +290,8 @@ const Chat = () => {
           ref={inputRef}
           value={message}
           onChange={handleInputChange}
-          rows={1}
           placeholder="Type message..."
-          className="flex-1 bg-gray-800 border border-gray-600 p-2 rounded text-white placeholder-gray-400"
+          className="flex-1 bg-gray-800 border border-gray-600 py-2 px-3 rounded text-white placeholder-gray-400 resize-none overflow-y-auto min-h-11 max-h-40 leading-normal"
           onKeyDown={handleEnter}
         />
         <button

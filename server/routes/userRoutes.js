@@ -8,3 +8,4 @@ router.get("/all", protect, getAllUsers);
 router.get("/search", protect, searchUsers);
 
 module.exports = router;
+    
