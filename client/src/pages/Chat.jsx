@@ -282,9 +282,20 @@ const Chat = () => {
             </React.Fragment>
           );
         })}
+        {isTyping && (
+          <div className="mb-2 text-left">
+            <div className="inline-block bg-gray-600 px-4 py-3 rounded-2xl rounded-bl-md">
+              <div className="flex items-center gap-1">
+                <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" />
+              </div>
+            </div>
+          </div>
+        )}
         <div ref={bottomRef} />
       </div>
-      {isTyping && <div className="text-sm text-gray-400 mb-2">Typing...</div>}
+
       <div className="flex mt-3 gap-2">
         <textarea
           ref={inputRef}
