@@ -10,12 +10,16 @@ const Chat = () => {
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([]);
   const [onlineUsers, setOnlineUsers] = useState([]);
+  const [isTyping, setIsTyping] = useState(false);
+  const [showScrollButton, setShowScrollButton] = useState(false);
+
+  const chatContainerRef = useRef(null);
   const bottomRef = useRef(null);
   const socketRef = useRef(null);
   const typingTimeoutRef = useRef(null);
-  const [isTyping, setIsTyping] = useState(false);
-  const navigate = useNavigate();
   const inputRef = useRef(null);
+
+  const navigate = useNavigate();
 
   const userId =
     localStorage.getItem("userId") || localStorage.getItem("senderId");
@@ -196,6 +200,31 @@ const Chat = () => {
     adjustTextAreaHeigh();
   }, [message]);
 
+  useEffect(() => {
+    const container = chatContainerRef.current;
+
+    if (!container) return;
+
+    const handleScroll = () => {
+      const threshold = 100;
+
+      const isNearBottom =
+        container.scrollHeight - container.scrollTop - container.clientHeight <
+        100;
+
+      setShowScrollButton(!isNearBottom);
+    };
+    container.addEventListener("scroll", handleScroll);
+
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToBottom = () => {
+    bottomRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  };
+
   return (
     <div className="h-screen flex flex-col p-4 bg-gray-900">
       <div className="flex justify-between items-center mb-2">
@@ -211,43 +240,48 @@ const Chat = () => {
         </span>
       </div>
 
-      <div className="flex-1 overflow-auto bg-gray-800 p-3 rounded shadow">
-        {chat.map((msg, i) => {
-          const prevMsg = chat[i - 1];
+      {/* chat container */}
+      <div className="flex-1 relative min-h-0">
+        <div
+          ref={chatContainerRef}
+          className="h-full overflow-y-auto bg-gray-800 p-3 rounded shadow "
+        >
+          {chat.map((msg, i) => {
+            const prevMsg = chat[i - 1];
 
-          const currentDate = new Date(msg.createdAt).toDateString();
+            const currentDate = new Date(msg.createdAt).toDateString();
 
-          const prevDate = prevMsg
-            ? new Date(prevMsg.createdAt).toDateString()
-            : null;
+            const prevDate = prevMsg
+              ? new Date(prevMsg.createdAt).toDateString()
+              : null;
 
-          const showDateSeparator = currentDate !== prevDate;
+            const showDateSeparator = currentDate !== prevDate;
 
-          const isSameSender =
-            prevMsg &&
-            (prevMsg.sender === msg.sender ||
-              prevMsg.sender?._id === msg.sender?._id);
+            const isSameSender =
+              prevMsg &&
+              (prevMsg.sender === msg.sender ||
+                prevMsg.sender?._id === msg.sender?._id);
 
-          const senderId =
-            typeof msg.sender === "object" ? msg.sender._id : msg.sender;
+            const senderId =
+              typeof msg.sender === "object" ? msg.sender._id : msg.sender;
 
-          return (
-            <React.Fragment key={i}>
-              {showDateSeparator && (
-                <div className="flex justify-center my-4">
-                  <span className="bg-gray-700 text-gray-300 text-xs px-3 py-1 rounded-full">
-                    {formatDateLable(msg.createdAt)}
-                  </span>
-                </div>
-              )}
-              {/* message bubble */}
-              <div
-                key={i}
-                className={`${isSameSender ? "mb-1" : "mb-4"}  ${msg.sender === userId ? "text-right" : "text-left"}`}
-              >
-                <div className="inline-block max-w-sm">
-                  <div
-                    className={`px-3 py-1 wrap-break-word whitespace-pre-wrap leading-relaxed
+            return (
+              <React.Fragment key={i}>
+                {showDateSeparator && (
+                  <div className="flex justify-center my-4">
+                    <span className="bg-gray-700 text-gray-300 text-xs px-3 py-1 rounded-full">
+                      {formatDateLable(msg.createdAt)}
+                    </span>
+                  </div>
+                )}
+                {/* message bubble */}
+                <div
+                  key={i}
+                  className={`${isSameSender ? "mb-1" : "mb-4"}  ${msg.sender === userId ? "text-right" : "text-left"}`}
+                >
+                  <div className="inline-block max-w-sm">
+                    <div
+                      className={`px-3 py-1 wrap-break-word whitespace-pre-wrap leading-relaxed
                     ${
                       senderId === userId
                         ? isSameSender
@@ -262,38 +296,50 @@ const Chat = () => {
                         ? "bg-blue-600 text-white"
                         : "bg-gray-600 text-white"
                     }`}
-                  >
-                    <p className="text-left">{msg.content}</p>
+                    >
+                      <p className="text-left">{msg.content}</p>
 
-                    <div className="flex justify-end items-center mt-1 gap-1">
-                      <span className="text-[10px] text-gray-400">
-                        {formatTime(msg.createdAt)}
-                      </span>
+                      <div className="flex justify-end items-center mt-1 gap-1">
+                        <span className="text-[10px] text-gray-400">
+                          {formatTime(msg.createdAt)}
+                        </span>
 
-                      {senderId === userId && (
-                        <div className="flex justify-end opacity-80">
-                          <MessageStatus status={msg.status} />
-                        </div>
-                      )}
+                        {senderId === userId && (
+                          <div className="flex justify-end opacity-80">
+                            <MessageStatus status={msg.status} />
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </React.Fragment>
-          );
-        })}
-        {isTyping && (
-          <div className="mb-2 text-left">
-            <div className="inline-block bg-gray-600 px-4 py-3 rounded-2xl rounded-bl-md">
-              <div className="flex items-center gap-1">
-                <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" />
+              </React.Fragment>
+            );
+          })}
+          {isTyping && (
+            <div className="mb-2 text-left">
+              <div className="inline-block bg-gray-600 px-4 py-3 rounded-2xl rounded-bl-md">
+                <div className="flex items-center gap-1">
+                  <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                  <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                  <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" />
+                </div>
               </div>
             </div>
-          </div>
-        )}
-        <div ref={bottomRef} />
+          )}
+
+          {
+            <button
+              onClick={scrollToBottom}
+              className={`absolute bottom-4 bg-blue-600 hover:bg-blue-700 text-white left-1/2 -translate-x-1/2 text-sm px-4 py-2 rounded-full shadow-lg cursor-pointer transition-all duration-300 
+              ${showScrollButton ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"}
+              `}
+            >
+              ↓
+            </button>
+          }
+          <div ref={bottomRef} />
+        </div>
       </div>
 
       <div className="flex mt-3 gap-2">
