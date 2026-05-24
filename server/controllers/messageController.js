@@ -86,3 +86,72 @@ exports.getConversations = async (req, res) => {
     res.status(500).json({ msg: "Failed to fetch conversations" });
   }
 };
+
+exports.deleteMessage = async (req, res) => {
+  try {
+    const message = await Message.findById(req.params.id);
+
+    if (!message) {
+      return res.status(404).json({
+        msg: "Message not found",
+      });
+    }
+    if (message.sender.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        msg: "Unauthorized",
+      });
+    }
+
+    await message.deleteOne();
+
+    const io = req.app.get("io");
+
+    io.to(message.receiver.toString()).emit("message_deleted", {
+      messageId: message._id,
+    });
+
+    res.json({
+      msg: "Message deleted",
+      messageId: message._id,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      msg: "Delete failed",
+    });
+  }
+};
+exports.editMessage = async (req, res) => {
+  try {
+    const message = await Message.findById(req.params.id);
+
+    if (!message) {
+      return res.status(404).json({
+        msg: "Message not found",
+      });
+    }
+    if (message.sender.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        msg: "Unauthorized",
+      });
+    }
+
+    const { content } = req.body;
+
+    message.content = content;
+    message.edited = true;
+
+    await message.save();
+
+    const io = req.app.get("io");
+
+    io.to(message.receiver.toString()).emit("message_edited", message);
+
+    res.json(message);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      msg: "Edit failed",
+    });
+  }
+};

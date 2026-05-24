@@ -5,6 +5,8 @@ import { MessageStatus } from "../components/MessageStatus";
 import { useNavigate, useParams } from "react-router-dom";
 import { formatTime } from "../utils/formatTime";
 import { formatDateLable } from "../utils/formatDateLable";
+import { FaTrash } from "react-icons/fa";
+import { MdEdit } from "react-icons/md";
 
 const Chat = () => {
   const [message, setMessage] = useState("");
@@ -12,6 +14,8 @@ const Chat = () => {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [editingMessageId, setEditingMessageId] = useState(null);
+  const [editedText, setEditedText] = useState("");
 
   const chatContainerRef = useRef(null);
   const bottomRef = useRef(null);
@@ -72,6 +76,14 @@ const Chat = () => {
     socketRef.current.on("message_status_update", ({ messageId, status }) => {
       setChat((prev) =>
         prev.map((msg) => (messageId === msg._id ? { ...msg, status } : msg)),
+      );
+    });
+    socketRef.current.on("message_deleted", ({ messageId }) => {
+      setChat((prev) => prev.filter((msg) => msg._id !== messageId));
+    });
+    socketRef.current.on("message_edited", (updatedMessage) => {
+      setChat((prev) =>
+        prev.map((msg) => (msg._id !== messageId ? updatedMessage : msg)),
       );
     });
 
@@ -225,6 +237,33 @@ const Chat = () => {
     });
   };
 
+  const deleteMessage = async (messageId) => {
+    try {
+      await api.delete(`/messages/${messageId}`);
+
+      setChat((prev) => prev.filter((msg) => msg._id !== messageId));
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleEditMessage = async (messageId) => {
+    try {
+      const res = await api.put(`/messages/${messageId}`, {
+        content: editedText,
+      });
+
+      setChat((prev) =>
+        prev.map((msg) => (msg._id === messageId ? res.data : msg)),
+      );
+
+      setEditingMessageId(null);
+      setEditedText("");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <div className="h-screen flex flex-col p-4 bg-gray-900">
       <div className="flex justify-between items-center mb-2">
@@ -276,10 +315,9 @@ const Chat = () => {
                 )}
                 {/* message bubble */}
                 <div
-                  key={i}
-                  className={`${isSameSender ? "mb-1" : "mb-4"}  ${msg.sender === userId ? "text-right" : "text-left"}`}
+                  className={`${isSameSender ? "mb-1" : "mb-4"}  ${senderId === userId ? "text-right" : "text-left"}`}
                 >
-                  <div className="inline-block max-w-sm">
+                  <div className="group inline-block max-w-sm relative">
                     <div
                       className={`px-3 py-1 wrap-break-word whitespace-pre-wrap leading-relaxed
                     ${
@@ -297,7 +335,46 @@ const Chat = () => {
                         : "bg-gray-600 text-white"
                     }`}
                     >
-                      <p className="text-left">{msg.content}</p>
+
+                      {editingMessageId === msg._id ? (
+                        <div className="flex flex-col gap-2">
+                          <textarea
+                            value={editedText}
+                            onChange={(e) => setEditedText(e.target.value)}
+                            className="resize-none outline-none bg-transparent text-white"
+                            autoFocus
+                          />
+
+                          <div className="flex justify-end gap-2 text-xs">
+                            <button
+                              className="text-gray-300  hover:text-white cursor-pointer"
+                              onClick={() => {
+                                setEditingMessageId(null);
+                                setEditedText("");
+                              }}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              className="text-blue-300  hover:text-blue-200 cursor-pointer"
+                              onClick={() => {
+                                handleEditMessage(msg._id);
+                              }}
+                            >
+                              Save
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p>x
+                          {msg.content}
+                          {msg?.edited && (
+                            <span className="text-[10px] text-gray-300 ml-2">
+                              (edited)
+                            </span>
+                          )}
+                        </p>
+                      )}
 
                       <div className="flex justify-end items-center mt-1 gap-1">
                         <span className="text-[10px] text-gray-400">
@@ -311,6 +388,27 @@ const Chat = () => {
                         )}
                       </div>
                     </div>
+                    {senderId === userId && (
+                      <>
+                        <button
+                          onClick={() => {
+                            setEditingMessageId(msg._id);
+                            setEditedText(msg.content);
+                          }}
+                          className="absolute -left-16 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-blue-400 cursor-pointer transition-opacity"
+                        >
+                          <MdEdit />
+                        </button>
+                        <button
+                          onClick={() => deleteMessage(msg._id)}
+                          className="absolute -left-8 top-1/2 -translate-y-1/2
+                        opacity-0 group-hover:opacity-100
+                        transition-opacity text-gray-400 hover:text-red-400 cursor-pointer"
+                        >
+                          <FaTrash />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               </React.Fragment>
@@ -328,18 +426,18 @@ const Chat = () => {
             </div>
           )}
 
-          {
-            <button
-              onClick={scrollToBottom}
-              className={`absolute bottom-4 bg-blue-600 hover:bg-blue-700 text-white left-1/2 -translate-x-1/2 text-sm px-4 py-2 rounded-full shadow-lg cursor-pointer transition-all duration-300 
-              ${showScrollButton ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"}
-              `}
-            >
-              ↓
-            </button>
-          }
           <div ref={bottomRef} />
         </div>
+        {
+          <button
+            onClick={scrollToBottom}
+            className={`absolute bottom-4 bg-blue-600 hover:bg-blue-700 text-white left-1/2 -translate-x-1/2 text-sm px-4 py-2 rounded-full shadow-lg cursor-pointer transition-all duration-300 
+              ${showScrollButton ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"}
+              `}
+          >
+            ↓
+          </button>
+        }
       </div>
 
       <div className="flex mt-3 gap-2">

@@ -38,6 +38,10 @@ const messageSchema = new mongoose.Schema(
       enum: ["sent", "delivered", "seen"],
       default: "sent",
     },
+    edited: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true },
 );
