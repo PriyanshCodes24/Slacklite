@@ -7,6 +7,7 @@ import { formatTime } from "../utils/formatTime";
 import { formatDateLable } from "../utils/formatDateLable";
 import { FaTrash } from "react-icons/fa";
 import { MdEdit } from "react-icons/md";
+import { GoReply } from "react-icons/go";
 
 const Chat = () => {
   const [message, setMessage] = useState("");
@@ -16,6 +17,7 @@ const Chat = () => {
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editedText, setEditedText] = useState("");
+  const [replyingTo, setReplyingTo] = useState(null);
 
   const chatContainerRef = useRef(null);
   const bottomRef = useRef(null);
@@ -161,6 +163,7 @@ const Chat = () => {
         content: message,
         receiver: receiverId,
         chatType: "dm",
+        replyTo: replyingTo?._id,
       });
 
       setChat((prev) => [...prev, res.data]);
@@ -170,6 +173,8 @@ const Chat = () => {
         receiver: receiverId,
         content: message,
       });
+
+      setReplyingTo(null);
     } catch (error) {
       console.log("Message failed: ", error);
     }
@@ -315,9 +320,9 @@ const Chat = () => {
                 )}
                 {/* message bubble */}
                 <div
-                  className={`${isSameSender ? "mb-1" : "mb-4"}  ${senderId === userId ? "text-right" : "text-left"}`}
+                  className={`${isSameSender ? "mb-1" : "mb-4"} group ${senderId === userId ? "text-right" : "text-left"}`}
                 >
-                  <div className="group inline-block max-w-sm relative">
+                  <div className="inline-block max-w-sm relative">
                     <div
                       className={`px-3 py-1 wrap-break-word whitespace-pre-wrap leading-relaxed
                     ${
@@ -335,7 +340,6 @@ const Chat = () => {
                         : "bg-gray-600 text-white"
                     }`}
                     >
-
                       {editingMessageId === msg._id ? (
                         <div className="flex flex-col gap-2">
                           <textarea
@@ -366,7 +370,14 @@ const Chat = () => {
                           </div>
                         </div>
                       ) : (
-                        <p>x
+                        <p className="text-left">
+                          {msg.replyTo && (
+                            <div className="mb-2 px-2 py-1 border-l-2 border-blue-400 bg-black/10 rounded text-sm">
+                              <p className="truncate text-gray-300">
+                                {msg.replyTo.content}
+                              </p>
+                            </div>
+                          )}
                           {msg.content}
                           {msg?.edited && (
                             <span className="text-[10px] text-gray-300 ml-2">
@@ -388,6 +399,12 @@ const Chat = () => {
                         )}
                       </div>
                     </div>
+                    <button
+                      onClick={() => setReplyingTo(msg)}
+                      className={`absolute ${senderId === userId ? "-left-24" : "left-26"} top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-blue-400 cursor-pointer`}
+                    >
+                      <GoReply />
+                    </button>
                     {senderId === userId && (
                       <>
                         <button
@@ -439,7 +456,26 @@ const Chat = () => {
           </button>
         }
       </div>
+      {replyingTo && (
+        <div className="bg-gray-800 border border-gray-700 rounded p-2 mb-2">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-xs text-blue-400">Replying to</p>
 
+              <p className="text-sm text-gray-300 truncate max-w-xs">
+                {replyingTo?.content}
+              </p>
+            </div>
+
+            <button
+              onClick={() => setReplyingTo(null)}
+              className="text-gray-400 hover:text-white cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
       <div className="flex mt-3 gap-2">
         <textarea
           ref={inputRef}

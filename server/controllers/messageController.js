@@ -1,7 +1,7 @@
 const Message = require("../models/Message");
 
 exports.sendMessage = async (req, res) => {
-  const { content, receiver, channelId, chatType } = req.body;
+  const { content, receiver, channelId, chatType, replyTo } = req.body;
 
   const message = await Message.create({
     sender: req.user._id,
@@ -10,6 +10,14 @@ exports.sendMessage = async (req, res) => {
     channelId,
     chatType,
     status: "sent",
+    replyTo,
+  });
+
+  await message.populate("sender", "name email");
+
+  await message.populate({
+    path: "replyTo",
+    select: "sender content",
   });
 
   const io = req.app.get("io");
@@ -42,6 +50,7 @@ exports.getMessages = async (req, res) => {
 
     const messages = await Message.find(query)
       .populate("sender", "name email")
+      .populate({ path: "replyTo", select: "content sender" })
       .sort({ createdAt: 1 });
     res.status(200).json(messages);
   } catch (e) {
