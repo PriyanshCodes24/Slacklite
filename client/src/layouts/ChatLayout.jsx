@@ -154,9 +154,15 @@ const ChatLayout = () => {
     });
   };
 
+  const activeConversation = conversations.find(
+    (c) => c.user._id === activeChatId,
+  );
+
   return (
     <div className="h-screen flex bg-gray-900">
-      <div className="border-gray-700 border-r overflow-auto w-75 ">
+      <div
+        className={`border-gray-700 border-r overflow-auto w-full md:w-1/4 ${activeChatId ? "hidden md:block" : "block"}`}
+      >
         <div className="p-3 border-b border-gray-700 flex items-center justify-between">
           <div>
             <p className="text-sm text-white font-semibold">
@@ -200,8 +206,8 @@ const ChatLayout = () => {
         </div>
         <Users conversations={conversations} onlineUsers={onlineUsers} />
       </div>
-      <div className="flex-1">
-        <Outlet />
+      <div className={`flex-1 ${activeChatId ? "block" : "hidden md:block"}`}>
+        <Outlet context={{ activeConversation, onlineUsers }} />
       </div>
     </div>
   );

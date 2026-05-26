@@ -2,14 +2,17 @@ import React, { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import api from "../services/api";
 import { MessageStatus } from "../components/MessageStatus";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { formatTime } from "../utils/formatTime";
 import { formatDateLable } from "../utils/formatDateLable";
 import { FaTrash } from "react-icons/fa";
 import { MdEdit } from "react-icons/md";
 import { GoReply } from "react-icons/go";
+import { IoArrowBackCircle, IoArrowBackOutline } from "react-icons/io5";
 
 const Chat = () => {
+  const { activeConversation } = useOutletContext();
+
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([]);
   const [onlineUsers, setOnlineUsers] = useState([]);
@@ -34,7 +37,7 @@ const Chat = () => {
   if (!userId || !receiverId) {
     return <div className="text-white">Set userId in localStorage</div>;
   }
-
+  // socket + fetchMessages
   useEffect(() => {
     inputRef.current?.focus();
     socketRef.current = io("http://localhost:5000");
@@ -123,10 +126,12 @@ const Chat = () => {
     };
   }, [userId, receiverId]);
 
+  // scrollToBottom
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chat]);
 
+  // shortCuts
   useEffect(() => {
     const handleShortcut = (e) => {
       const isTyping =
@@ -204,7 +209,7 @@ const Chat = () => {
     }, 1200);
   };
 
-  const adjustTextAreaHeigh = () => {
+  const adjustTextAreaHeight = () => {
     const textarea = inputRef.current;
 
     if (!textarea) return;
@@ -214,9 +219,10 @@ const Chat = () => {
   };
 
   useEffect(() => {
-    adjustTextAreaHeigh();
+    adjustTextAreaHeight();
   }, [message]);
 
+  // showScrollButton
   useEffect(() => {
     const container = chatContainerRef.current;
 
@@ -271,9 +277,21 @@ const Chat = () => {
 
   return (
     <div className="h-screen flex flex-col p-4 bg-gray-900">
+      {/* Header */}
       <div className="flex justify-between items-center mb-2">
-        <h2 className="text-white text-xl font-semibold">{"Chat"}</h2>
+        <div className="flex text-center gap-3">
+          <button
+            onClick={() => navigate("/")}
+            className="md:hidden text-gray-300 hover:text-white cursor-pointer"
+          >
+            <IoArrowBackOutline />
+          </button>
 
+          <h2 className="text-white text-xl font-semibold">
+            {activeConversation?.user?.name || "Chat"}
+          </h2>
+        </div>
+    
         <span className="flex items-center gap-2 text-sm">
           <span
             className={`w-2 h-2 rounded-full ${
@@ -456,6 +474,7 @@ const Chat = () => {
           </button>
         }
       </div>
+
       {replyingTo && (
         <div className="bg-gray-800 border border-gray-700 rounded p-2 mb-2">
           <div className="flex justify-between items-start">
@@ -476,6 +495,7 @@ const Chat = () => {
           </div>
         </div>
       )}
+
       <div className="flex mt-3 gap-2">
         <textarea
           ref={inputRef}
