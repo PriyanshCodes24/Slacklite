@@ -2,6 +2,7 @@ import React, { useEffect, useId, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../services/api";
 import { formatTime } from "../utils/formatTime";
+import { getInitials } from "../utils/getInitials";
 
 const Users = ({ conversations, onlineUsers }) => {
   const navigate = useNavigate();
@@ -26,14 +27,20 @@ const Users = ({ conversations, onlineUsers }) => {
               <div className="min-w-0 flex-1">
                 {/* top row */}
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span
-                      className={`w-2 h-2 rounded-full shrink-0 ${
-                        onlineUsers.includes(item.user._id)
-                          ? "bg-green-400"
-                          : "bg-gray-500"
-                      }`}
-                    />
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="relative shrink-0">
+                      <div className="h-10 w-10 bg-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
+                        {getInitials(item.user?.name)}
+                      </div>
+
+                      <span
+                        className={`absolute bottom-0 ring-0 w-3 h-3 rounded-full border-2 border-gray-800 ${
+                          onlineUsers.includes(item.user._id)
+                            ? "bg-green-400"
+                            : "bg-gray-500"
+                        }`}
+                      />
+                    </div>
                     <p className="font-medium truncate">
                       {item.user?.name || "Unknown"}
                     </p>
