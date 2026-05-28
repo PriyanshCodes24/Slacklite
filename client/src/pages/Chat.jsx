@@ -148,7 +148,9 @@ const Chat = () => {
     });
     socketRef.current.on("message_edited", (updatedMessage) => {
       setChat((prev) =>
-        prev.map((msg) => (msg._id !== messageId ? updatedMessage : msg)),
+        prev.map((msg) =>
+          msg._id !== updatedMessage._id ? updatedMessage : msg,
+        ),
       );
     });
 
@@ -396,7 +398,7 @@ const Chat = () => {
                           </div>
                         </div>
                       ) : (
-                        <p className="text-left">
+                        <div className="text-left">
                           {msg.replyTo && (
                             <div className="mb-2 px-2 py-1 border-l-2 border-blue-400 bg-black/10 rounded text-sm">
                               <p className="truncate text-gray-300">
@@ -410,7 +412,7 @@ const Chat = () => {
                               (edited)
                             </span>
                           )}
-                        </p>
+                        </div>
                       )}
 
                       <div className="flex justify-end items-center mt-1 gap-1">

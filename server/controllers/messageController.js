@@ -152,6 +152,13 @@ exports.editMessage = async (req, res) => {
 
     await message.save();
 
+    await message.populate("sender", "name email");
+
+    await message.populate({
+      path: "replyTo",
+      select: "content sender",
+    });
+
     const io = req.app.get("io");
 
     io.to(message.receiver.toString()).emit("message_edited", message);
