@@ -69,10 +69,12 @@ module.exports = (io) => {
 
     socket.on("disconnect", () => {
       console.log("User disconnected:", socket.id);
-      for (let [userId, sockId] of onlineUsers.entries()) {
-        if (sockId === socket.id) {
+
+      for (let [userId, socketSet] of onlineUsers.entries()) {
+        socketSet.delete(socket.id);
+
+        if (socketSet.size === 0) {
           onlineUsers.delete(userId);
-          break;
         }
       }
 
