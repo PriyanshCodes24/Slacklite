@@ -17,8 +17,9 @@ const Register = () => {
         password,
       });
 
-      localStorage.setItem("token", res.data.token);
       localStorage.setItem("userId", res.data._id);
+      localStorage.setItem("userName", username);
+      localStorage.setItem("token", res.data.token);
 
       navigate("/");
     } catch (e) {

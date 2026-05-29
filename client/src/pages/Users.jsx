@@ -23,47 +23,50 @@ const Users = ({ conversations, onlineUsers }) => {
             className={`p-3 rounded cursor-pointer transition ${isActive ? "bg-gray-700" : "bg-gray-800 hover:bg-gray-700"}`}
             onClick={() => handleSelectUser(item.user._id)}
           >
-            <div className="flex justify-between items-start">
-              <div className="min-w-0 flex-1">
-                {/* top row */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="relative shrink-0">
-                      <div className="h-10 w-10 bg-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
-                        {getInitials(item.user?.name)}
-                      </div>
+            <div className="flex gap-3">
+              {/* top row */}
+              <div className="relative shrink-0">
+                <div className="h-10 w-10 bg-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
+                  {getInitials(item.user?.name)}
+                </div>
 
-                      <span
-                        className={`absolute bottom-0 ring-0 w-3 h-3 rounded-full border-2 border-gray-800 ${
-                          onlineUsers.includes(item.user._id)
-                            ? "bg-green-400"
-                            : "bg-gray-500"
-                        }`}
-                      />
-                    </div>
-                    <p className="font-medium truncate">
-                      {item.user?.name || "Unknown"}
-                    </p>
-                  </div>
+                <span
+                  className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-gray-800 ${
+                    onlineUsers.includes(item.user._id)
+                      ? "bg-green-400"
+                      : "bg-gray-500"
+                  }`}
+                />
+              </div>
+
+              {/* content */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="font-medium truncate">
+                    {item.user?.name || "Unknown"}
+                  </p>
 
                   {item.createdAt && (
-                    <span className="text-xs text-gray-500 shrink-0 ml-2">
+                    <span className="text-xs text-gray-500 shrink-0">
                       {formatTime(item.createdAt)}
                     </span>
                   )}
                 </div>
-                {/* last message */}
-                <p className="text-gray-400 text-sm truncate ml-4">
-                  {item.lastMessage || "No messages yet"}
-                </p>
-              </div>
 
-              {/* unread badge */}
-              {item.unread > 0 && (
-                <span className="bg-blue-600 rounded-full px-2 py-1 text-xs ml-2 shrink-0">
-                  {item.unread}
-                </span>
-              )}
+                <div className="flex items-center justify-between gap-2 mt-1 ">
+                  {/* msg preview */}
+                  <p className="text-gray-400 text-sm truncate flex-1">
+                    {item.lastMessage || "No messages yet"}
+                  </p>
+
+                  {/* unread badge */}
+                  {item.unread > 0 && (
+                    <span className="bg-blue-600 rounded-full min-w-5 h-5 px-1 text-xs flex justify-center items-center shrink-0">
+                      {item.unread}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         );
