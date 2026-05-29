@@ -1,7 +1,18 @@
 const Message = require("../models/Message");
+const uploadToCloudinary = require("../utils/uploadToCloudinary");
 
 exports.sendMessage = async (req, res) => {
   const { content, receiver, channelId, chatType, replyTo } = req.body;
+
+  let mediaUrl = null;
+  let messageType = "text";
+
+  if (req.file) {
+    const uploaded = await uploadToCloudinary(req.file.buffer);
+
+    mediaUrl = uploaded.secure_url;
+    messageType = "media";
+  }
 
   const message = await Message.create({
     sender: req.user._id,
@@ -11,6 +22,8 @@ exports.sendMessage = async (req, res) => {
     chatType,
     status: "sent",
     replyTo,
+    mediaUrl,
+    messageType,
   });
 
   await message.populate("sender", "name email");

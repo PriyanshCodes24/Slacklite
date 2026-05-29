@@ -8,7 +8,7 @@ const messageSchema = new mongoose.Schema(
     },
     content: {
       type: String,
-      required: true,
+      default: "",
     },
     chatType: {
       type: String,
@@ -46,6 +46,12 @@ const messageSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Message",
     },
+    messageType: {
+      type: String,
+      enum: ["text", "media"],
+      default: "text",
+    },
+    mediaUrl: String,
   },
   { timestamps: true },
 );
