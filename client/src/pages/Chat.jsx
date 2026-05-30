@@ -10,6 +10,8 @@ import { MdEdit } from "react-icons/md";
 import { GoReply } from "react-icons/go";
 import { IoArrowBackCircle, IoArrowBackOutline } from "react-icons/io5";
 import { getInitials } from "../utils/getInitials";
+import { LuPaperclip } from "react-icons/lu";
+import { CiCircleRemove } from "react-icons/ci";
 
 const Chat = () => {
   const { activeConversation } = useOutletContext();
@@ -22,12 +24,14 @@ const Chat = () => {
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editedText, setEditedText] = useState("");
   const [replyingTo, setReplyingTo] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   const chatContainerRef = useRef(null);
   const bottomRef = useRef(null);
   const socketRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const inputRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const navigate = useNavigate();
 
@@ -40,14 +44,27 @@ const Chat = () => {
   }
 
   const sendMessage = async () => {
-    if (!message.trim()) return;
+    if (!message.trim() && !selectedFile) return;
 
     try {
-      const res = await api.post("/messages", {
-        content: message,
-        receiver: receiverId,
-        chatType: "dm",
-        replyTo: replyingTo?._id,
+      const formData = new FormData();
+
+      formData.append("content", message);
+      formData.append("receiver", receiverId);
+      formData.append("chatType", "dm");
+
+      if (replyingTo?._id) {
+        formData.append("replyTo", replyingTo._id);
+      }
+
+      if (selectedFile) {
+        formData.append("media", selectedFile);
+      }
+
+      const res = await api.post("/messages", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
 
       setChat((prev) => [...prev, res.data]);
@@ -406,8 +423,27 @@ const Chat = () => {
                               </p>
                             </div>
                           )}
-                          {msg.content}
-                          {msg?.edited && (
+
+                          {msg.messageType === "media" && msg.mediaUrl && (
+                            <img
+                              src={msg.mediaUrl}
+                              alt="uploaded"
+                              className="max-w-xs max-h-80 object-cover rounded-lg mb-2 cursor-pointer"
+                            />
+                          )}
+
+                          {msg.content && (
+                            <div>
+                              {msg.content}
+                              {msg?.edited && (
+                                <span className="text-[10px] text-gray-300 ml-2">
+                                  (edited)
+                                </span>
+                              )}
+                            </div>
+                          )}
+
+                          {!msg.content && msg.edited && (
                             <span className="text-[10px] text-gray-300 ml-2">
                               (edited)
                             </span>
@@ -485,6 +521,23 @@ const Chat = () => {
         }
       </div>
 
+      {selectedFile && (
+        <div className="mb-2 bg-gray-800 p-2 rounded">
+          <img
+            src={URL.createObjectURL(selectedFile)}
+            alt="preview"
+            className="max-h-40 rounded"
+          />
+
+          <button
+            onClick={() => setSelectedFile(null)}
+            className="text-red-400 text-xs mt-2 cursor-pointer"
+          >
+            Remove
+          </button>
+        </div>
+      )}
+
       {replyingTo && (
         <div className="bg-gray-800 border border-gray-700 rounded p-2 mb-2">
           <div className="flex justify-between items-start">
@@ -507,6 +560,15 @@ const Chat = () => {
       )}
 
       <div className="flex mt-3 gap-2">
+        <input
+          type="file"
+          accept="image/*"
+          className="hidden"
+          ref={fileInputRef}
+          onChange={(e) => {
+            setSelectedFile(e.target.files[0]);
+          }}
+        />
         <textarea
           ref={inputRef}
           value={message}
@@ -515,6 +577,13 @@ const Chat = () => {
           className="flex-1 bg-gray-800 border border-gray-600 py-2 px-3 rounded text-white placeholder-gray-400 resize-none overflow-y-auto min-h-11 max-h-40 leading-normal"
           onKeyDown={handleEnter}
         />
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className="bg-gray-800 hover:bg-gray-600 cursor-pointer px-3 rouded"
+        >
+          <LuPaperclip />
+        </button>
         <button
           className="bg-blue-600 hover:bg-blue-700 px-4 rounded cursor-pointer text-white"
           onClick={sendMessage}

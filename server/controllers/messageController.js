@@ -97,7 +97,8 @@ exports.getConversations = async (req, res) => {
       if (!conversations[key]) {
         conversations[key] = {
           user: otherUser,
-          lastMessage: msg.content,
+          lastMessage:
+            msg.messageType === "text" ? msg.content : `[${msg.messageType}]`,
           createdAt: msg.createdAt,
         };
       }
