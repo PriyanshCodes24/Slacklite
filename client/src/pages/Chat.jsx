@@ -12,6 +12,8 @@ import { IoArrowBackCircle, IoArrowBackOutline } from "react-icons/io5";
 import { getInitials } from "../utils/getInitials";
 import { LuPaperclip } from "react-icons/lu";
 import { CiCircleRemove } from "react-icons/ci";
+import { RxCross2 } from "react-icons/rx";
+import { MessageBubble } from "../components/MessageBubble";
 
 const Chat = () => {
   const { activeConversation } = useOutletContext();
@@ -25,6 +27,7 @@ const Chat = () => {
   const [editedText, setEditedText] = useState("");
   const [replyingTo, setReplyingTo] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
 
   const chatContainerRef = useRef(null);
   const bottomRef = useRef(null);
@@ -223,6 +226,10 @@ const Chat = () => {
           inputRef.current?.blur();
           return;
         }
+        if (previewImage) {
+          setPreviewImage(null);
+          return;
+        }
         navigate("/");
       }
 
@@ -237,7 +244,7 @@ const Chat = () => {
 
     window.addEventListener("keydown", handleShortcut);
     return () => window.removeEventListener("keydown", handleShortcut);
-  }, [navigate]);
+  }, [navigate, previewImage]);
 
   useEffect(() => {
     adjustTextAreaHeight();
@@ -363,135 +370,20 @@ const Chat = () => {
                     </span>
                   </div>
                 )}
-                {/* message bubble */}
-                <div
-                  className={`${isSameSender ? "mb-1" : "mb-4"} group ${senderId === userId ? "text-right" : "text-left"}`}
-                >
-                  <div className="inline-block max-w-sm relative">
-                    <div
-                      className={`px-3 py-1 wrap-break-word whitespace-pre-wrap leading-relaxed
-                    ${
-                      senderId === userId
-                        ? isSameSender
-                          ? "rounded-2xl rounded-tr-md"
-                          : "rounded-2xl"
-                        : isSameSender
-                          ? "rounded-2xl rounded-tl-md"
-                          : "rounded-2xl"
-                    }
-                    ${
-                      senderId === userId
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-600 text-white"
-                    }`}
-                    >
-                      {editingMessageId === msg._id ? (
-                        <div className="flex flex-col gap-2">
-                          <textarea
-                            value={editedText}
-                            onChange={(e) => setEditedText(e.target.value)}
-                            className="resize-none outline-none bg-transparent text-white"
-                            autoFocus
-                          />
-
-                          <div className="flex justify-end gap-2 text-xs">
-                            <button
-                              className="text-gray-300  hover:text-white cursor-pointer"
-                              onClick={() => {
-                                setEditingMessageId(null);
-                                setEditedText("");
-                              }}
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              className="text-blue-300  hover:text-blue-200 cursor-pointer"
-                              onClick={() => {
-                                handleEditMessage(msg._id);
-                              }}
-                            >
-                              Save
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="text-left">
-                          {msg.replyTo && (
-                            <div className="mb-2 px-2 py-1 border-l-2 border-blue-400 bg-black/10 rounded text-sm">
-                              <p className="truncate text-gray-300">
-                                {msg.replyTo.content}
-                              </p>
-                            </div>
-                          )}
-
-                          {msg.messageType === "media" && msg.mediaUrl && (
-                            <img
-                              src={msg.mediaUrl}
-                              alt="uploaded"
-                              className="max-w-xs max-h-80 object-cover rounded-lg mb-2 cursor-pointer"
-                            />
-                          )}
-
-                          {msg.content && (
-                            <div>
-                              {msg.content}
-                              {msg?.edited && (
-                                <span className="text-[10px] text-gray-300 ml-2">
-                                  (edited)
-                                </span>
-                              )}
-                            </div>
-                          )}
-
-                          {!msg.content && msg.edited && (
-                            <span className="text-[10px] text-gray-300 ml-2">
-                              (edited)
-                            </span>
-                          )}
-                        </div>
-                      )}
-
-                      <div className="flex justify-end items-center mt-1 gap-1">
-                        <span className="text-[10px] text-gray-400">
-                          {formatTime(msg.createdAt)}
-                        </span>
-
-                        {senderId === userId && (
-                          <div className="flex justify-end opacity-80">
-                            <MessageStatus status={msg.status} />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setReplyingTo(msg)}
-                      className={`absolute ${senderId === userId ? "-left-24" : "left-26"} top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-blue-400 cursor-pointer`}
-                    >
-                      <GoReply />
-                    </button>
-                    {senderId === userId && (
-                      <>
-                        <button
-                          onClick={() => {
-                            setEditingMessageId(msg._id);
-                            setEditedText(msg.content);
-                          }}
-                          className="absolute -left-16 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-blue-400 cursor-pointer transition-opacity"
-                        >
-                          <MdEdit />
-                        </button>
-                        <button
-                          onClick={() => deleteMessage(msg._id)}
-                          className="absolute -left-8 top-1/2 -translate-y-1/2
-                        opacity-0 group-hover:opacity-100
-                        transition-opacity text-gray-400 hover:text-red-400 cursor-pointer"
-                        >
-                          <FaTrash />
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
+                <MessageBubble
+                  msg={msg}
+                  isSameSender={isSameSender}
+                  senderId={senderId}
+                  userId={userId}
+                  editingMessageId={editingMessageId}
+                  editedText={editedText}
+                  setEditedText={setEditedText}
+                  setEditingMessageId={setEditingMessageId}
+                  setPreviewImage={setPreviewImage}
+                  setReplyingTo={setReplyingTo}
+                  handleEditMessage={handleEditMessage}
+                  deleteMessage={deleteMessage}
+                />
               </React.Fragment>
             );
           })}
@@ -591,6 +483,22 @@ const Chat = () => {
           send
         </button>
       </div>
+      {previewImage && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <img
+            src={previewImage}
+            alt="preview"
+            className="max-h-[90vh] max-w-[90vw] rounded-lg"
+          />
+
+          <button
+            onClick={() => setPreviewImage(null)}
+            className="cursor-pointer absolute top-4 right-4 text-3xl"
+          >
+            <RxCross2 />
+          </button>
+        </div>
+      )}
     </div>
   );
 };
