@@ -1,26 +1,57 @@
 import { LuPaperclip } from "react-icons/lu";
 import api from "../services/api";
+import { useEffect, useRef, useState } from "react";
 
 export const MessageInput = ({
-  fileInputRef,
   setSelectedFile,
   inputRef,
-  message,
-  handleInputChange,
   selectedFile,
   replyingTo,
   setChat,
-  setMessage,
   socketRef,
   userId,
   receiverId,
   setReplyingTo,
 }) => {
+  const [message, setMessage] = useState("");
+
+  const typingTimeoutRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  const adjustTextAreaHeight = () => {
+    const textarea = inputRef.current;
+
+    if (!textarea) return;
+
+    textarea.style.height = "0px";
+    textarea.style.height = Math.min(textarea.scrollHeight, 160) + "px";
+  };
+
+  useEffect(() => {
+    adjustTextAreaHeight();
+  }, [message]);
+
   const handleEnter = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
+  };
+  const handleInputChange = (e) => {
+    setMessage(e.target.value);
+
+    socketRef.current.emit("typing", {
+      senderId: userId,
+      receiverId,
+    });
+
+    clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
+      socketRef.current.emit("stop_typing", {
+        senderId: userId,
+        receiverId,
+      });
+    }, 1200);
   };
   const sendMessage = async () => {
     if (!message.trim() && !selectedFile) return;

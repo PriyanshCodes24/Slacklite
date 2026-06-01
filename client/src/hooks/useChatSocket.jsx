@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import api from "../services/api";
+import { io } from "socket.io-client";
 
 export const useChatSocket = ({
   inputRef,
@@ -9,7 +10,6 @@ export const useChatSocket = ({
   receiverId,
   setIsTyping,
   setOnlineUsers,
-  io
 }) => {
   useEffect(() => {
     inputRef.current?.focus();
@@ -62,7 +62,7 @@ export const useChatSocket = ({
     socketRef.current.on("message_edited", (updatedMessage) => {
       setChat((prev) =>
         prev.map((msg) =>
-          msg._id !== updatedMessage._id ? updatedMessage : msg,
+          msg._id === updatedMessage._id ? updatedMessage : msg,
         ),
       );
     });
