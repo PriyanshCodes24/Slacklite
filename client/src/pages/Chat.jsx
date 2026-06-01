@@ -2,15 +2,16 @@ import React, { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import api from "../services/api";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
-import { formatDateLable } from "../utils/formatDateLable";
 import { IoArrowBackOutline } from "react-icons/io5";
+
+import { formatDateLable } from "../utils/formatDateLable";
 import { getInitials } from "../utils/getInitials";
-import { LuPaperclip } from "react-icons/lu";
-import { RxCross2 } from "react-icons/rx";
+import { useChatShortcuts } from "../hooks/useChatShortcuts";
 import { MessageBubble } from "../components/MessageBubble";
 import { ReplyPreview } from "../components/ReplyPreview";
 import { MessageInput } from "../components/MessageInput";
 import { ImageModal } from "../components/ImageModal";
+import { useChatSocket } from "../hooks/useChatSocket";
 
 const Chat = () => {
   const { activeConversation } = useOutletContext();
@@ -69,134 +70,28 @@ const Chat = () => {
     textarea.style.height = Math.min(textarea.scrollHeight, 160) + "px";
   };
 
-  // socket + fetchMessages
-  useEffect(() => {
-    inputRef.current?.focus();
-    socketRef.current = io("http://localhost:5000");
+  useChatShortcuts({
+    inputRef,
+    previewImage,
+    navigate,
+    setPreviewImage,
+  });
 
-    socketRef.current.emit("join", userId);
-    console.log("Joining room: ", userId);
-
-    socketRef.current.emit("message_seen", {
-      senderId: receiverId,
-      receiverId: userId,
-    });
-
-    socketRef.current.on("receive_message", (data) => {
-      if (data.sender !== userId) {
-        setChat((prev) => [...prev, data]);
-
-        socketRef.current.emit("message_delivered", {
-          messageId: data._id,
-        });
-
-        socketRef.current.emit("message_seen", {
-          senderId: receiverId,
-          receiverId: userId,
-        });
-      }
-    });
-
-    socketRef.current.on("typing", ({ senderId }) => {
-      if (userId !== senderId) {
-        setIsTyping(true);
-      }
-    });
-    socketRef.current.on("stop_typing", ({ senderId }) => {
-      if (userId !== senderId) {
-        setIsTyping(false);
-      }
-    });
-    socketRef.current.on("online_users", (users) => {
-      setOnlineUsers(users);
-    });
-    socketRef.current.on("message_status_update", ({ messageId, status }) => {
-      setChat((prev) =>
-        prev.map((msg) => (messageId === msg._id ? { ...msg, status } : msg)),
-      );
-    });
-    socketRef.current.on("message_deleted", ({ messageId }) => {
-      setChat((prev) => prev.filter((msg) => msg._id !== messageId));
-    });
-    socketRef.current.on("message_edited", (updatedMessage) => {
-      setChat((prev) =>
-        prev.map((msg) =>
-          msg._id !== updatedMessage._id ? updatedMessage : msg,
-        ),
-      );
-    });
-
-    const fetchMessages = async () => {
-      try {
-        const res = await api.get(`/messages?chatId=${receiverId}&type=dm`);
-        const normalized = res.data.map((msg) => ({
-          ...msg,
-          sender: typeof msg.sender === "object" ? msg.sender._id : msg.sender,
-        }));
-
-        setChat(normalized);
-      } catch (error) {
-        console.error("Failed to load messages:", error);
-      }
-    };
-    fetchMessages();
-    socketRef.current.on("message_seen", ({ senderId }) => {
-      setChat((prev) =>
-        prev.map((msg) =>
-          msg.sender === userId && msg.receiver === receiverId
-            ? { ...msg, status: "seen" }
-            : msg,
-        ),
-      );
-    });
-
-    return () => {
-      socketRef.current.off("receive_message");
-      socketRef.current.off("typing");
-      socketRef.current.off("stop_typing");
-      socketRef.current.off("message_seen");
-      socketRef.current.off("message_status_update");
-      socketRef.current.disconnect();
-    };
-  }, [userId, receiverId]);
+  useChatSocket({
+    inputRef,
+    socketRef,
+    userId,
+    setChat,
+    receiverId,
+    setIsTyping,
+    setOnlineUsers,
+    io,
+  });
 
   // scrollToBottom
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chat]);
-
-  // shortCuts
-  useEffect(() => {
-    const handleShortcut = (e) => {
-      const isTyping =
-        document.activeElement.tagName === "INPUT" ||
-        document.activeElement.tagName === "TEXTAREA" ||
-        document.activeElement?.isContentEditable;
-
-      if (e.key === "Escape") {
-        if (isTyping) {
-          inputRef.current?.blur();
-          return;
-        }
-        if (previewImage) {
-          setPreviewImage(null);
-          return;
-        }
-        navigate("/");
-      }
-
-      if (e.key === "/") {
-        if (isTyping) {
-          return;
-        }
-        e.preventDefault();
-        inputRef.current?.focus();
-      }
-    };
-
-    window.addEventListener("keydown", handleShortcut);
-    return () => window.removeEventListener("keydown", handleShortcut);
-  }, [navigate, previewImage]);
 
   useEffect(() => {
     adjustTextAreaHeight();
@@ -226,33 +121,6 @@ const Chat = () => {
     bottomRef.current?.scrollIntoView({
       behavior: "smooth",
     });
-  };
-
-  const deleteMessage = async (messageId) => {
-    try {
-      await api.delete(`/messages/${messageId}`);
-
-      setChat((prev) => prev.filter((msg) => msg._id !== messageId));
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const handleEditMessage = async (messageId) => {
-    try {
-      const res = await api.put(`/messages/${messageId}`, {
-        content: editedText,
-      });
-
-      setChat((prev) =>
-        prev.map((msg) => (msg._id === messageId ? res.data : msg)),
-      );
-
-      setEditingMessageId(null);
-      setEditedText("");
-    } catch (error) {
-      console.log(error);
-    }
   };
 
   return (
@@ -333,8 +201,7 @@ const Chat = () => {
                   setEditingMessageId={setEditingMessageId}
                   setPreviewImage={setPreviewImage}
                   setReplyingTo={setReplyingTo}
-                  handleEditMessage={handleEditMessage}
-                  deleteMessage={deleteMessage}
+                  setChat={setChat}
                 />
               </React.Fragment>
             );
