@@ -57,7 +57,21 @@ export const MessageInput = ({
   const sendMessage = async () => {
     if (!message.trim() && !selectedFile) return;
 
+    const tempId = `temp-${Date.now()}`;
     try {
+      const tempMessage = {
+        _id: tempId,
+        sender: userId,
+        receiver: receiverId,
+        content: message,
+        messageType: selectedFile ? "media" : "text",
+        mediaUrl: selectedFile ? URL.createObjectURL(selectedFile) : null,
+        createdAt: new Date().toISOString(),
+        status: "sending",
+        pending: true,
+        replyTo: replyingTo || null,
+      };
+
       const formData = new FormData();
 
       formData.append("content", message);
@@ -72,13 +86,19 @@ export const MessageInput = ({
         formData.append("media", selectedFile);
       }
 
+      setChat((prev) => [...prev, tempMessage]);
+
+      setSelectedFile(null);
+
       const res = await api.post("/messages", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
-      setChat((prev) => [...prev, res.data]);
+      setChat((prev) =>
+        prev.map((msg) => (msg._id === tempId ? res.data : msg)),
+      );
       setMessage("");
       socketRef.current.emit("send_message", {
         sender: userId,
@@ -87,8 +107,8 @@ export const MessageInput = ({
       });
 
       setReplyingTo(null);
-      setSelectedFile(null);
     } catch (error) {
+      setChat((prev) => prev.filter((msg) => msg._id !== tempId));
       console.log("Message failed: ", error);
     }
   };

@@ -143,7 +143,13 @@ export const MessageBubble = ({
 
             {senderId === userId && (
               <div className="flex justify-end opacity-80">
-                <MessageStatus status={msg.status} />
+                {msg?.pending ? (
+                  <span className="text-[10px] text-gray-300">
+                    Uploading...
+                  </span>
+                ) : (
+                  <MessageStatus status={msg.status} />
+                )}
               </div>
             )}
           </div>
