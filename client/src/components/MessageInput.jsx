@@ -1,6 +1,7 @@
 import { LuPaperclip } from "react-icons/lu";
 import api from "../services/api";
 import { useEffect, useRef, useState } from "react";
+import { BsFillSendFill } from "react-icons/bs";
 
 export const MessageInput = ({
   setSelectedFile,
@@ -86,6 +87,7 @@ export const MessageInput = ({
       });
 
       setReplyingTo(null);
+      setSelectedFile(null);
     } catch (error) {
       console.log("Message failed: ", error);
     }
@@ -120,7 +122,7 @@ export const MessageInput = ({
         className="bg-blue-600 hover:bg-blue-700 px-4 rounded cursor-pointer text-white"
         onClick={sendMessage}
       >
-        send
+        <BsFillSendFill />
       </button>
     </div>
   );

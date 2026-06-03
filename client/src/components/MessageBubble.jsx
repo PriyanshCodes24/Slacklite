@@ -70,6 +70,12 @@ export const MessageBubble = ({
               <textarea
                 value={editedText}
                 onChange={(e) => setEditedText(e.target.value)}
+                ref={(el) => {
+                  if (el) {
+                    const length = el.value.length;
+                    el.setSelectionRange(length, length);
+                  }
+                }}
                 className="resize-none outline-none bg-transparent text-white"
                 autoFocus
               />
