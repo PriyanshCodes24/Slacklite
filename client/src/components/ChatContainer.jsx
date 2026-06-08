@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { formatDateLable } from "../utils/formatDateLable";
 import { MessageBubble } from "./MessageBubble";
 import { useChatScroll } from "../hooks/useChatScroll";
+import { FaChevronDown } from "react-icons/fa";
 
 export const ChatContainer = ({
   chat,
@@ -13,8 +14,13 @@ export const ChatContainer = ({
 }) => {
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editedText, setEditedText] = useState("");
-  const { showScrollButton, chatContainerRef, bottomRef, scrollToBottom } =
-    useChatScroll(chat);
+  const {
+    showScrollButton,
+    chatContainerRef,
+    bottomRef,
+    scrollToBottom,
+    newMessageCount,
+  } = useChatScroll(chat);
   return (
     <div className="flex-1 relative min-h-0">
       {/* message list */}
@@ -83,11 +89,18 @@ export const ChatContainer = ({
       {
         <button
           onClick={scrollToBottom}
-          className={`absolute bottom-4 bg-blue-600 hover:bg-blue-700 text-white left-1/2 -translate-x-1/2 text-sm px-4 py-2 rounded-full shadow-lg cursor-pointer transition-all duration-300 
-                ${showScrollButton ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"}
+          className={`absolute bottom-4 backdrop-blur-sm bg-blue-600 hover:bg-blue-700  left-1/2 -translate-x-1/2 text-sm px-4 py-2 rounded-full shadow-lg cursor-pointer transition-all duration-300 flex items-center gap-2
+                ${showScrollButton ? "opacity-95 hover:opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"}
                 `}
         >
-          ↓
+          <FaChevronDown className="text-xs" />
+
+          {newMessageCount > 0 && (
+            <span className="text-sm font-medium">
+              {newMessageCount > 9 ? "9+" : newMessageCount} New Message
+              {newMessageCount > 1 ? "s" : ""}
+            </span>
+          )}
         </button>
       }
     </div>

@@ -3,10 +3,19 @@ import { useEffect, useRef, useState } from "react";
 export const useChatScroll = (chat) => {
   const bottomRef = useRef(null);
   const chatContainerRef = useRef(null);
+  const isNearBottomRef = useRef(true);
+  const [newMessageCount, setNewMessageCount] = useState(0);
+
   const [showScrollButton, setShowScrollButton] = useState(false);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (isNearBottomRef.current) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+
+      setNewMessageCount(0);
+    } else {
+      setNewMessageCount((prev) => prev + 1);
+    }
   }, [chat]);
 
   useEffect(() => {
@@ -15,11 +24,11 @@ export const useChatScroll = (chat) => {
     if (!container) return;
 
     const handleScroll = () => {
-      const threshold = 100;
-
       const isNearBottom =
         container.scrollHeight - container.scrollTop - container.clientHeight <
         100;
+
+      isNearBottomRef.current = isNearBottom;
 
       setShowScrollButton(!isNearBottom);
     };
@@ -32,6 +41,14 @@ export const useChatScroll = (chat) => {
     bottomRef.current?.scrollIntoView({
       behavior: "smooth",
     });
+
+    setNewMessageCount(0);
   };
-  return { chatContainerRef, showScrollButton, bottomRef, scrollToBottom };
+  return {
+    chatContainerRef,
+    showScrollButton,
+    bottomRef,
+    scrollToBottom,
+    newMessageCount,
+  };
 };
