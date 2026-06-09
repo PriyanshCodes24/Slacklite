@@ -20,6 +20,8 @@ const Chat = () => {
   const [replyingTo, setReplyingTo] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
+  const [editingMessageId, setEditingMessageId] = useState(null);
+  const [editedText, setEditedText] = useState("");
 
   const socketRef = useRef(null);
   const inputRef = useRef(null);
@@ -39,6 +41,10 @@ const Chat = () => {
     previewImage,
     navigate,
     setPreviewImage,
+    editingMessageId,
+    setEditingMessageId,
+    editedText,
+    setEditedText,
   });
 
   useChatSocket({
@@ -67,6 +73,10 @@ const Chat = () => {
         setPreviewImage={setPreviewImage}
         setReplyingTo={setReplyingTo}
         setChat={setChat}
+        editingMessageId={editingMessageId}
+        setEditingMessageId={setEditingMessageId}
+        editedText={editedText}
+        setEditedText={setEditedText}
       />
 
       {selectedFile && (

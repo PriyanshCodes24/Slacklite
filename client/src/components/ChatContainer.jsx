@@ -11,9 +11,11 @@ export const ChatContainer = ({
   setPreviewImage,
   setReplyingTo,
   setChat,
+  editingMessageId,
+  setEditingMessageId,
+  editedText,
+  setEditedText,
 }) => {
-  const [editingMessageId, setEditingMessageId] = useState(null);
-  const [editedText, setEditedText] = useState("");
   const {
     showScrollButton,
     chatContainerRef,

@@ -1,11 +1,13 @@
 import { useEffect } from "react";
 
 export const useChatShortcuts = ({
-  handleShortcut,
   inputRef,
   previewImage,
   navigate,
   setPreviewImage,
+  editingMessageId,
+  setEditingMessageId,
+  setEditedText,
 }) => {
   useEffect(() => {
     const handleShortcut = (e) => {
@@ -15,6 +17,11 @@ export const useChatShortcuts = ({
         document.activeElement?.isContentEditable;
 
       if (e.key === "Escape") {
+        if (editingMessageId) {
+          setEditingMessageId(null);
+          setEditedText("");
+          return;
+        }
         if (isTyping) {
           inputRef.current?.blur();
           return;
@@ -25,6 +32,8 @@ export const useChatShortcuts = ({
         }
         navigate("/");
       }
+
+      
 
       if (e.key === "/") {
         if (isTyping) {
@@ -37,5 +46,13 @@ export const useChatShortcuts = ({
 
     window.addEventListener("keydown", handleShortcut);
     return () => window.removeEventListener("keydown", handleShortcut);
-  }, [navigate, previewImage]);
+  }, [
+    navigate,
+    previewImage,
+    editingMessageId,
+    inputRef,
+    setPreviewImage,
+    setEditingMessageId,
+    setEditedText,
+  ]);
 };
