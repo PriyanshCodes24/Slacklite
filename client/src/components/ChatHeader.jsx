@@ -1,5 +1,6 @@
 import { IoArrowBackOutline } from "react-icons/io5";
 import { getInitials } from "../utils/getInitials";
+import { formatLastSeen } from "../utils/formatLastSeen";
 
 export const ChatHeader = ({
   navigate,
@@ -32,7 +33,9 @@ export const ChatHeader = ({
           </h2>
 
           <p className="text-xs text-gray-400">
-            {onlineUsers.includes(receiverId) ? "Online" : "Offline"}
+            {onlineUsers.includes(receiverId)
+              ? "Online"
+              : `Last Seen ${formatLastSeen(activeConversation?.user?.lastSeen)}`}
           </p>
         </div>
       </div>

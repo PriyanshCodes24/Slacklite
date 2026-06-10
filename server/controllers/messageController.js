@@ -81,8 +81,8 @@ exports.getConversations = async (req, res) => {
       $or: [{ sender: userId }, { receiver: userId }],
     })
       .sort({ createdAt: -1 })
-      .populate("sender", "name")
-      .populate("receiver", "name");
+      .populate("sender", "name lastSeen")
+      .populate("receiver", "name lastSeen");
 
     const conversations = {};
 

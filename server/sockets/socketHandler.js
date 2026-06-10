@@ -1,4 +1,5 @@
 const Message = require("../models/Message");
+const User = require("../models/User");
 
 const onlineUsers = new Map();
 
@@ -7,6 +8,7 @@ module.exports = (io) => {
     console.log("User connected:", socket.id);
 
     socket.on("join", (userId) => {
+      socket.userId = userId;
       socket.join(userId);
 
       if (!onlineUsers.has(userId)) {
@@ -67,13 +69,16 @@ module.exports = (io) => {
       }
     });
 
-    socket.on("disconnect", () => {
+    socket.on("disconnect", async () => {
       console.log("User disconnected:", socket.id);
 
       for (let [userId, socketSet] of onlineUsers.entries()) {
         socketSet.delete(socket.id);
 
         if (socketSet.size === 0) {
+          await User.findByIdAndUpdate(socket.userId, {
+            lastSeen: new Date(),
+          });
           onlineUsers.delete(userId);
         }
       }
