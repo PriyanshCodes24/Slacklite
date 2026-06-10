@@ -100,7 +100,15 @@ exports.getConversations = async (req, res) => {
           lastMessage:
             msg.messageType === "text" ? msg.content : `[${msg.messageType}]`,
           createdAt: msg.createdAt,
+          unread: 0,
         };
+      }
+      if (
+        msg.receiver?._id?.toString() === userId.toString() &&
+        msg.sender?._id?.toString() === key &&
+        msg.status !== "seen"
+      ) {
+        conversations[key].unread++;
       }
     });
     res.json(Object.values(conversations));
@@ -138,7 +146,7 @@ exports.deleteMessage = async (req, res) => {
       messageId: message._id,
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).json({
       msg: "Delete failed",
     });
@@ -179,7 +187,7 @@ exports.editMessage = async (req, res) => {
 
     res.json(message);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).json({
       msg: "Edit failed",
     });

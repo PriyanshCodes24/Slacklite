@@ -48,7 +48,7 @@ module.exports = (io) => {
     });
     socket.on("message_seen", async ({ senderId, receiverId }) => {
       try {
-        console.log("Seen triggered:", senderId, receiverId);
+        // console.log("Seen triggered:", senderId, receiverId);
         if (!senderId || !receiverId) return;
         await Message.updateMany(
           {
