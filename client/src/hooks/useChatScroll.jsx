@@ -4,18 +4,24 @@ export const useChatScroll = (chat) => {
   const bottomRef = useRef(null);
   const chatContainerRef = useRef(null);
   const isNearBottomRef = useRef(true);
-  const [newMessageCount, setNewMessageCount] = useState(0);
+  const previousLengthRef = useRef(chat.length);
 
+  const [newMessageCount, setNewMessageCount] = useState(0);
   const [showScrollButton, setShowScrollButton] = useState(false);
 
   useEffect(() => {
-    if (isNearBottomRef.current) {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const messageAdded = chat.length > previousLengthRef.current;
 
-      setNewMessageCount(0);
-    } else {
-      setNewMessageCount((prev) => prev + 1);
+    if (messageAdded) {
+      if (isNearBottomRef.current) {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+
+        setNewMessageCount(0);
+      } else {
+        setNewMessageCount((prev) => prev + 1);
+      }
     }
+    previousLengthRef.current = chat.length;
   }, [chat]);
 
   useEffect(() => {
@@ -31,6 +37,10 @@ export const useChatScroll = (chat) => {
       isNearBottomRef.current = isNearBottom;
 
       setShowScrollButton(!isNearBottom);
+
+      if (isNearBottom) {
+        setNewMessageCount(0);
+      }
     };
     container.addEventListener("scroll", handleScroll);
 

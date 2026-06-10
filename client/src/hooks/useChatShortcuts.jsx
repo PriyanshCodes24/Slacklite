@@ -12,11 +12,15 @@ export const useChatShortcuts = ({
   useEffect(() => {
     const handleShortcut = (e) => {
       const isTyping =
-        document.activeElement.tagName === "INPUT" ||
-        document.activeElement.tagName === "TEXTAREA" ||
+        document.activeElement?.tagName === "INPUT" ||
+        document.activeElement?.tagName === "TEXTAREA" ||
         document.activeElement?.isContentEditable;
 
       if (e.key === "Escape") {
+        if (previewImage) {
+          setPreviewImage(null);
+          return;
+        }
         if (editingMessageId) {
           setEditingMessageId(null);
           setEditedText("");
@@ -26,14 +30,8 @@ export const useChatShortcuts = ({
           inputRef.current?.blur();
           return;
         }
-        if (previewImage) {
-          setPreviewImage(null);
-          return;
-        }
         navigate("/");
       }
-
-      
 
       if (e.key === "/") {
         if (isTyping) {
